@@ -153,7 +153,7 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ),
-              if (bottom != null) bottom!,
+              ?bottom,
               const _AppBarDivider(),
             ],
           ),

@@ -1,6 +1,7 @@
 /// Exceptions thrown by the Data Sources (Firebase, Cache, API layers).
 ///
 /// These exceptions are caught by the repositories and mapped to `Failure` types.
+library;
 
 class ServerException implements Exception {
   final String message;

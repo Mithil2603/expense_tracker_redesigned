@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/theme.dart';
+import '../utils/fingo_state.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // APP TEXT FIELDS
@@ -591,7 +592,7 @@ class AppSectionHeader extends StatelessWidget {
         children: [
           Text(title.toUpperCase(), style: AppTextStyles.overline),
           const Spacer(),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );
@@ -1147,4 +1148,126 @@ class AppQuestCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// [FingoGamifiedAppBar] — Production-grade custom top bar featuring streak, health bar, and XP stats.
+class FingoGamifiedAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const FingoGamifiedAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = FingoState.instance;
+    final isLight = Theme.of(context).brightness == Brightness.light;
+
+    return AppBar(
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      backgroundColor: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
+      elevation: 0,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1.0),
+        child: Container(
+          color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
+          height: AppSizes.borderThick,
+        ),
+      ),
+      title: ListenableBuilder(
+        listenable: state,
+        builder: (context, _) {
+          // Calculate health out of 30: 5 hearts maps to 30 health (1 heart = 6 health)
+          final currentHealth = state.hearts * 6;
+          final maxHealth = 30;
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+            child: Row(
+              children: [
+                // FINGO Branding on left
+                Text(
+                  'FINGO',
+                  style: AppTextStyles.h2.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const Spacer(),
+
+                // Daily Streak
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    state.incrementStreak();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Streak Incremented! 🔥')),
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🔥', style: TextStyle(fontSize: 18)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${state.streak}',
+                        style: AppTextStyles.labelMD.copyWith(
+                          color: AppColors.secondary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // XP Points
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('⭐', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${state.xp}',
+                      style: AppTextStyles.labelMD.copyWith(
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+
+                // Health Bar (Lives)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    state.refillHearts();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Health Refilled! ❤️')),
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('❤️', style: TextStyle(fontSize: 18)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$currentHealth/$maxHealth',
+                        style: AppTextStyles.labelMD.copyWith(
+                          color: AppColors.error,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

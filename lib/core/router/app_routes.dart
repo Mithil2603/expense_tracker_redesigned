@@ -15,6 +15,12 @@ abstract final class AppRoutes {
   static const String profilePath = '/profile';
   static const String profileName = 'profile';
 
+  static const String subscriptionsPath = '/subscriptions';
+  static const String subscriptionsName = 'subscriptions';
+
+  static const String feedPath = '/feed';
+  static const String feedName = 'feed';
+
   // ─── Sub-routes / Detail Screens ───────────────────────────────────────────
   static const String addExpensePath = 'add-expense';
   static const String addExpenseName = 'add-expense';

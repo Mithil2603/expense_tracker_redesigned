@@ -114,7 +114,7 @@ extension NumX on num {
     for (var i = remaining.length; i > 0; i -= 2) {
       groups.insert(0, remaining.substring(i < 2 ? 0 : i - 2, i));
     }
-    return '${groups.join(',')},${lastThree}$decPart';
+    return '${groups.join(',')},$lastThree$decPart';
   }
 
   /// E.g. 1234567 → "₹12.3L" or "₹1.2Cr"

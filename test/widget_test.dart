@@ -10,14 +10,14 @@ void main() {
     await di.init();
   });
 
-  testWidgets('Fingo App dashboard renders daily goal progress', (WidgetTester tester) async {
+  testWidgets('Fingo App dashboard renders weekly transaction header', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const FingoApp());
 
     // Let routing settle
     await tester.pumpAndSettle();
 
-    // Verify that the gamified dashboard starts up correctly
-    expect(find.text('DAILY GOAL'), findsOneWidget);
+    // Verify that the clean weekly dashboard starts up correctly
+    expect(find.text('THIS WEEK'), findsOneWidget);
   });
 }
