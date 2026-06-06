@@ -1,0 +1,723 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_sizes.dart';
+import '../theme/app_text_styles.dart';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP TEXT FIELDS
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// [AppTextField] — standard single-line text input.
+///
+/// Handles all decoration, validation error state, and keyboard type.
+///
+/// ```dart
+/// AppTextField(
+///   label: 'Title',
+///   hint: 'e.g. Grocery run',
+///   prefixIcon: Icons.title_rounded,
+///   controller: _titleCtrl,
+///   validator: (v) => v!.isEmpty ? 'Required' : null,
+/// )
+/// ```
+class AppTextField extends StatelessWidget {
+  const AppTextField({
+    super.key,
+    this.label,
+    this.hint,
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.onSubmitted,
+    this.validator,
+    this.keyboardType,
+    this.textInputAction,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.obscureText = false,
+    this.enabled = true,
+    this.readOnly = false,
+    this.maxLines = 1,
+    this.minLines,
+    this.maxLength,
+    this.inputFormatters,
+    this.textCapitalization = TextCapitalization.none,
+    this.autofillHints,
+    this.initialValue,
+    this.onTap,
+    this.autofocus = false,
+  });
+
+  final String? label;
+  final String? hint;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final FormFieldValidator<String>? validator;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final IconData? prefixIcon;
+  final Widget? suffixIcon;
+  final bool obscureText;
+  final bool enabled;
+  final bool readOnly;
+  final int? maxLines;
+  final int? minLines;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextCapitalization textCapitalization;
+  final Iterable<String>? autofillHints;
+  final String? initialValue;
+  final VoidCallback? onTap;
+  final bool autofocus;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      initialValue: initialValue,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      validator: validator,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      obscureText: obscureText,
+      enabled: enabled,
+      readOnly: readOnly,
+      maxLines: obscureText ? 1 : maxLines,
+      minLines: minLines,
+      maxLength: maxLength,
+      inputFormatters: inputFormatters,
+      textCapitalization: textCapitalization,
+      autofillHints: autofillHints,
+      autofocus: autofocus,
+      onTap: onTap,
+      style: AppTextStyles.bodyMD.copyWith(color: AppColors.textPrimary),
+      cursorColor: AppColors.secondary,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, size: AppSizes.iconSM)
+            : null,
+        suffixIcon: suffixIcon,
+        counterText: '',
+      ),
+    );
+  }
+}
+
+/// [AppPasswordField] — password input with show/hide toggle built in.
+class AppPasswordField extends StatefulWidget {
+  const AppPasswordField({
+    super.key,
+    this.label = 'Password',
+    this.hint = '••••••••',
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.onSubmitted,
+    this.validator,
+    this.textInputAction = TextInputAction.done,
+  });
+
+  final String label;
+  final String hint;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final FormFieldValidator<String>? validator;
+  final TextInputAction textInputAction;
+
+  @override
+  State<AppPasswordField> createState() => _AppPasswordFieldState();
+}
+
+class _AppPasswordFieldState extends State<AppPasswordField> {
+  bool _obscure = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppTextField(
+      label: widget.label,
+      hint: widget.hint,
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      validator: widget.validator,
+      textInputAction: widget.textInputAction,
+      obscureText: _obscure,
+      keyboardType: TextInputType.visiblePassword,
+      autofillHints: const [AutofillHints.password],
+      prefixIcon: Icons.lock_outline_rounded,
+      suffixIcon: GestureDetector(
+        onTap: () => setState(() => _obscure = !_obscure),
+        child: Icon(
+          _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          size: AppSizes.iconSM,
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+/// [AppAmountField] — numeric amount input with currency prefix.
+class AppAmountField extends StatelessWidget {
+  const AppAmountField({
+    super.key,
+    this.label = 'Amount',
+    this.hint = '0.00',
+    this.currency = '₹',
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.validator,
+    this.textInputAction = TextInputAction.next,
+  });
+
+  final String label;
+  final String hint;
+  final String currency;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final FormFieldValidator<String>? validator;
+  final TextInputAction textInputAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      onChanged: onChanged,
+      validator: validator,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      textInputAction: textInputAction,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+      ],
+      style: AppTextStyles.amountMD,
+      cursorColor: AppColors.secondary,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSizes.s12),
+          child: Text(currency, style: AppTextStyles.amountMD.copyWith(color: AppColors.accent)),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+      ),
+    );
+  }
+}
+
+/// [AppSearchField] — search bar with clear button.
+class AppSearchField extends StatefulWidget {
+  const AppSearchField({
+    super.key,
+    this.hint = 'Search expenses...',
+    this.onChanged,
+    this.onSubmitted,
+    this.controller,
+    this.autofocus = false,
+  });
+
+  final String hint;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final TextEditingController? controller;
+  final bool autofocus;
+
+  @override
+  State<AppSearchField> createState() => _AppSearchFieldState();
+}
+
+class _AppSearchFieldState extends State<AppSearchField> {
+  late final TextEditingController _ctrl;
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = widget.controller ?? TextEditingController();
+    _ctrl.addListener(() => setState(() => _hasText = _ctrl.text.isNotEmpty));
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _ctrl,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      autofocus: widget.autofocus,
+      textInputAction: TextInputAction.search,
+      style: AppTextStyles.bodyMD,
+      cursorColor: AppColors.secondary,
+      decoration: InputDecoration(
+        hintText: widget.hint,
+        prefixIcon: const Icon(Icons.search_rounded, size: AppSizes.iconSM),
+        suffixIcon: _hasText
+            ? GestureDetector(
+                onTap: () {
+                  _ctrl.clear();
+                  widget.onChanged?.call('');
+                },
+                child: const Icon(Icons.close_rounded, size: AppSizes.iconSM),
+              )
+            : null,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.paddingMD,
+          vertical: AppSizes.paddingSM,
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP BUTTONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// [AppButton] — primary CTA button.
+///
+/// Handles loading state (replaces label with a spinner).
+class AppButton extends StatelessWidget {
+  const AppButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.loading = false,
+    this.enabled = true,
+    this.icon,
+    this.expand = true,
+  });
+
+  final String label;
+  final VoidCallback? onTap;
+  final bool loading;
+  final bool enabled;
+  final IconData? icon;
+  final bool expand;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: expand ? double.infinity : null,
+      height: AppSizes.buttonHeightLG,
+      child: ElevatedButton(
+        onPressed: (enabled && !loading) ? onTap : null,
+        child: loading
+            ? const SizedBox.square(
+                dimension: AppSizes.iconSM,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                ),
+              )
+            : icon != null
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: AppSizes.iconSM),
+                      const SizedBox(width: AppSizes.s8),
+                      Text(label),
+                    ],
+                  )
+                : Text(label),
+      ),
+    );
+  }
+}
+
+/// [AppOutlineButton] — secondary/outline variant.
+class AppOutlineButton extends StatelessWidget {
+  const AppOutlineButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.loading = false,
+    this.enabled = true,
+    this.icon,
+    this.expand = true,
+  });
+
+  final String label;
+  final VoidCallback? onTap;
+  final bool loading;
+  final bool enabled;
+  final IconData? icon;
+  final bool expand;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: expand ? double.infinity : null,
+      height: AppSizes.buttonHeightLG,
+      child: OutlinedButton(
+        onPressed: (enabled && !loading) ? onTap : null,
+        child: loading
+            ? SizedBox.square(
+                dimension: AppSizes.iconSM,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(AppColors.secondary),
+                ),
+              )
+            : icon != null
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: AppSizes.iconSM),
+                      const SizedBox(width: AppSizes.s8),
+                      Text(label),
+                    ],
+                  )
+                : Text(label),
+      ),
+    );
+  }
+}
+
+/// [AppIconButton] — circular icon button used in lists, cards, app bars.
+class AppIconButton extends StatelessWidget {
+  const AppIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.color,
+    this.backgroundColor,
+    this.size = AppSizes.iconMD,
+    this.tooltip,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color? color;
+  final Color? backgroundColor;
+  final double size;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip ?? '',
+      child: Material(
+        color: backgroundColor ?? Colors.transparent,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSizes.s8),
+            child: Icon(icon, size: size, color: color ?? AppColors.textSecondary),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP CARD
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// [AppCard] — standard card container with consistent radius and border.
+class AppCard extends StatelessWidget {
+  const AppCard({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.padding,
+    this.color,
+    this.borderColor,
+    this.borderRadius,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final EdgeInsetsGeometry? padding;
+  final Color? color;
+  final Color? borderColor;
+  final BorderRadius? borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = borderRadius ?? BorderRadius.circular(AppSizes.radiusLG);
+    return Material(
+      color: color ?? AppColors.surface,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(
+              color: borderColor ?? AppColors.outline,
+              width: AppSizes.borderThin,
+            ),
+          ),
+          padding: padding ?? const EdgeInsets.all(AppSizes.paddingMD),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP CHIP / TAG
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// [AppChip] — selectable category chip used in filters and forms.
+class AppChip extends StatelessWidget {
+  const AppChip({
+    super.key,
+    required this.label,
+    this.selected = false,
+    this.onTap,
+    this.color,
+    this.icon,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  /// Color used for the selected state border + label.
+  final Color? color;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = color ?? AppColors.secondary;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.s12,
+          vertical: AppSizes.s6,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? activeColor.withOpacity(0.15) : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+          border: Border.all(
+            color: selected ? activeColor : AppColors.outline,
+            width: selected ? AppSizes.borderMD : AppSizes.borderThin,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: AppSizes.iconXS, color: selected ? activeColor : AppColors.textSecondary),
+              const SizedBox(width: AppSizes.s4),
+            ],
+            Text(
+              label,
+              style: AppTextStyles.labelSM.copyWith(
+                color: selected ? activeColor : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP DIVIDER / SECTION HEADER
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// Horizontal rule with optional label centered in it.
+class AppDivider extends StatelessWidget {
+  const AppDivider({super.key, this.label, this.indent = 0});
+
+  final String? label;
+  final double indent;
+
+  @override
+  Widget build(BuildContext context) {
+    if (label == null) {
+      return Divider(
+        color: AppColors.outline,
+        thickness: AppSizes.borderThin,
+        indent: indent,
+        endIndent: indent,
+      );
+    }
+    return Row(
+      children: [
+        Expanded(child: Divider(color: AppColors.outline, thickness: AppSizes.borderThin, indent: indent)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSizes.s12),
+          child: Text(label!, style: AppTextStyles.caption),
+        ),
+        Expanded(child: Divider(color: AppColors.outline, thickness: AppSizes.borderThin, endIndent: indent)),
+      ],
+    );
+  }
+}
+
+/// Section header used above list groups (e.g. "Today", "Yesterday").
+class AppSectionHeader extends StatelessWidget {
+  const AppSectionHeader({super.key, required this.title, this.trailing});
+
+  final String title;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: AppSizes.screenHPadding,
+        right: AppSizes.screenHPadding,
+        top: AppSizes.s20,
+        bottom: AppSizes.s8,
+      ),
+      child: Row(
+        children: [
+          Text(title.toUpperCase(), style: AppTextStyles.overline),
+          const Spacer(),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP EMPTY STATE
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// Centered empty-state widget with icon, title, and optional CTA.
+class AppEmptyState extends StatelessWidget {
+  const AppEmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.paddingXL),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSizes.s24),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.outline),
+              ),
+              child: Icon(icon, size: AppSizes.icon2XL, color: AppColors.textTertiary),
+            ),
+            const SizedBox(height: AppSizes.s20),
+            Text(title, style: AppTextStyles.h3, textAlign: TextAlign.center),
+            if (message != null) ...[
+              const SizedBox(height: AppSizes.s8),
+              Text(message!, style: AppTextStyles.bodyMD.copyWith(color: AppColors.textSecondary), textAlign: TextAlign.center),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: AppSizes.s24),
+              AppButton(label: actionLabel!, onTap: onAction, expand: false),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP LOADING INDICATOR
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// Centered full-screen loading spinner.
+class AppLoader extends StatelessWidget {
+  const AppLoader({super.key, this.message});
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation(AppColors.secondary),
+            strokeWidth: 2.5,
+          ),
+          if (message != null) ...[
+            const SizedBox(height: AppSizes.s16),
+            Text(message!, style: AppTextStyles.bodyMD.copyWith(color: AppColors.textSecondary)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP BADGE / STATUS INDICATOR
+// ══════════════════════════════════════════════════════════════════════════════
+
+enum AppBadgeVariant { success, error, warning, info, neutral }
+
+/// Colored badge used for status labels.
+class AppBadge extends StatelessWidget {
+  const AppBadge({super.key, required this.label, this.variant = AppBadgeVariant.neutral});
+
+  final String label;
+  final AppBadgeVariant variant;
+
+  @override
+  Widget build(BuildContext context) {
+    final (bg, fg) = switch (variant) {
+      AppBadgeVariant.success => (AppColors.successSurface, AppColors.success),
+      AppBadgeVariant.error   => (AppColors.errorSurface, AppColors.error),
+      AppBadgeVariant.warning => (AppColors.warningSurface, AppColors.warning),
+      AppBadgeVariant.info    => (AppColors.infoSurface, AppColors.info),
+      AppBadgeVariant.neutral => (AppColors.surface, AppColors.textSecondary),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.s8,
+        vertical: AppSizes.s2,
+      ),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+        border: Border.all(color: fg.withOpacity(0.3)),
+      ),
+      child: Text(label, style: AppTextStyles.caption.copyWith(color: fg, fontWeight: FontWeight.w600)),
+    );
+  }
+}
