@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_sizes.dart';
-import '../theme/app_text_styles.dart';
+import '../theme/theme.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // APP TEXT FIELDS
@@ -700,10 +698,10 @@ class AppBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (variant) {
-      AppBadgeVariant.success => (AppColors.successSurface, AppColors.success),
-      AppBadgeVariant.error   => (AppColors.errorSurface, AppColors.error),
-      AppBadgeVariant.warning => (AppColors.warningSurface, AppColors.warning),
-      AppBadgeVariant.info    => (AppColors.infoSurface, AppColors.info),
+      AppBadgeVariant.success => (AppColors.successSurfaceLight, AppColors.success),
+      AppBadgeVariant.error   => (AppColors.errorSurfaceLight, AppColors.error),
+      AppBadgeVariant.warning => (AppColors.warningSurfaceLight, AppColors.warning),
+      AppBadgeVariant.info    => (AppColors.infoSurfaceLight, AppColors.info),
       AppBadgeVariant.neutral => (AppColors.surface, AppColors.textSecondary),
     };
 
@@ -718,6 +716,435 @@ class AppBadge extends StatelessWidget {
         border: Border.all(color: fg.withOpacity(0.3)),
       ),
       child: Text(label, style: AppTextStyles.caption.copyWith(color: fg, fontWeight: FontWeight.w600)),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GAMIFIED WIDGETS (FIN-GO / DUOLINGO STYLE)
+// ══════════════════════════════════════════════════════════════════════════════
+
+/// [App3DButton] — A physical press-animate button with a bottom shadow bevel.
+class App3DButton extends StatefulWidget {
+  const App3DButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.color = AppColors.primary,
+    this.shadowColor = AppColors.primaryDark,
+    this.textColor = Colors.white,
+    this.icon,
+    this.loading = false,
+    this.enabled = true,
+    this.height = 54.0,
+    this.shadowHeight = 4.0,
+    this.expand = true,
+  });
+
+  final String label;
+  final VoidCallback? onTap;
+  final Color color;
+  final Color shadowColor;
+  final Color textColor;
+  final IconData? icon;
+  final bool loading;
+  final bool enabled;
+  final double height;
+  final double shadowHeight;
+  final bool expand;
+
+  @override
+  State<App3DButton> createState() => _App3DButtonState();
+}
+
+class _App3DButtonState extends State<App3DButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasTap = widget.enabled && !widget.loading && widget.onTap != null;
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    
+    // Fallbacks for disabled state
+    final buttonColor = hasTap 
+        ? widget.color 
+        : (isLight ? const Color(0xFFE5E5E5) : const Color(0xFF2B3D45));
+    final shadowColor = hasTap 
+        ? widget.shadowColor 
+        : (isLight ? const Color(0xFFCDCDCD) : const Color(0xFF1E2E35));
+    final textColor = hasTap 
+        ? widget.textColor 
+        : (isLight ? const Color(0xFFAFAFAF) : const Color(0xFF6B7F8A));
+
+    Widget buttonBody = Stack(
+      children: [
+        // Bevel layer
+        Container(
+          height: widget.height + widget.shadowHeight,
+          decoration: BoxDecoration(
+            color: shadowColor,
+            borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+          ),
+        ),
+        // Active top layer
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 60),
+          margin: EdgeInsets.only(
+            top: _isPressed ? widget.shadowHeight : 0,
+            bottom: _isPressed ? 0 : widget.shadowHeight,
+          ),
+          height: widget.height,
+          decoration: BoxDecoration(
+            color: buttonColor,
+            borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+            border: Border.all(
+              color: Colors.white.withOpacity(isLight ? 0.15 : 0.08),
+              width: 1.5,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: widget.loading
+              ? SizedBox.square(
+                  dimension: AppSizes.iconSM,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation(textColor),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.icon != null) ...[
+                      Icon(widget.icon, color: textColor, size: AppSizes.iconSM + 2),
+                      const SizedBox(width: AppSizes.s8),
+                    ],
+                    Text(
+                      widget.label.toUpperCase(),
+                      style: AppTextStyles.labelLG.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ],
+    );
+
+    return GestureDetector(
+      onTapDown: hasTap ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: hasTap ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: hasTap ? () => setState(() => _isPressed = false) : null,
+      onTap: hasTap ? widget.onTap : null,
+      child: widget.expand ? buttonBody : IntrinsicWidth(child: buttonBody),
+    );
+  }
+}
+
+/// [AppXPProgressBar] — Duolingo-style rounded progress bar displaying XP or leveling status.
+class AppXPProgressBar extends StatelessWidget {
+  const AppXPProgressBar({
+    super.key,
+    required this.currentXP,
+    required this.targetXP,
+    this.height = 16.0,
+  });
+
+  final int currentXP;
+  final int targetXP;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final double ratio = (currentXP / targetXP).clamp(0.0, 1.0);
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final trackColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Daily Goal'.toUpperCase(),
+              style: AppTextStyles.labelSM.copyWith(
+                color: isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+                fontWeight: FontWeight.w800,
+                fontSize: 11,
+              ),
+            ),
+            Text(
+              '$currentXP / $targetXP XP',
+              style: AppTextStyles.labelSM.copyWith(
+                color: AppColors.accent,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Container(
+          height: height,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: trackColor,
+            borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutBack,
+                    width: constraints.maxWidth * ratio,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.accent, Color(0xFFFFA000)],
+                      ),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.25),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// [AppStreakIndicator] — Playful flame streak indicator for daily interactions.
+class AppStreakIndicator extends StatelessWidget {
+  const AppStreakIndicator({
+    super.key,
+    required this.streak,
+    this.onTap,
+  });
+
+  final int streak;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final activeBg = isLight ? AppColors.warningSurfaceLight : AppColors.warningSurfaceDark;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSizes.s12, vertical: AppSizes.s6),
+        decoration: BoxDecoration(
+          color: activeBg,
+          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+          border: Border.all(
+            color: AppColors.secondary.withOpacity(0.4),
+            width: AppSizes.borderThick,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🔥', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: AppSizes.s4),
+            Text(
+              '$streak',
+              style: AppTextStyles.labelMD.copyWith(
+                color: AppColors.secondary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// [AppHeartIndicator] — Playful hearts container representing remaining daily budget buffer or "lives".
+class AppHeartIndicator extends StatelessWidget {
+  const AppHeartIndicator({
+    super.key,
+    required this.lives,
+    this.maxLives = 5,
+    this.onTap,
+  });
+
+  final int lives;
+  final int maxLives;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final activeBg = isLight ? AppColors.errorSurfaceLight : AppColors.errorSurfaceDark;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSizes.s12, vertical: AppSizes.s6),
+        decoration: BoxDecoration(
+          color: activeBg,
+          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+          border: Border.all(
+            color: AppColors.error.withOpacity(0.4),
+            width: AppSizes.borderThick,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('❤️', style: TextStyle(fontSize: 16)),
+            const SizedBox(width: AppSizes.s4),
+            Text(
+              '$lives/$maxLives',
+              style: AppTextStyles.labelMD.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// [AppQuestCard] — A checkable daily quest item with XP reward.
+class AppQuestCard extends StatelessWidget {
+  const AppQuestCard({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.xpReward,
+    required this.progress,
+    required this.target,
+    this.completed = false,
+    this.onTap,
+  });
+
+  final String title;
+  final String description;
+  final int xpReward;
+  final int progress;
+  final int target;
+  final bool completed;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final double ratio = (progress / target).clamp(0.0, 1.0);
+
+    return AppCard(
+      onTap: onTap,
+      color: completed 
+          ? (isLight ? AppColors.successSurfaceLight : AppColors.successSurfaceDark)
+          : null,
+      borderColor: completed 
+          ? AppColors.primary.withOpacity(0.6) 
+          : null,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTextStyles.labelMD.copyWith(
+                          color: completed 
+                              ? AppColors.primary 
+                              : (isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.s8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.s8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSM),
+                        border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        '+$xpReward XP',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.accentDark,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: AppTextStyles.bodySM.copyWith(
+                    color: isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Tiny progress bar
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+                        child: SizedBox(
+                          height: 8,
+                          child: LinearProgressIndicator(
+                            value: ratio,
+                            color: completed ? AppColors.primary : AppColors.info,
+                            backgroundColor: isLight ? const Color(0xFFE5E5E5) : AppColors.bgDark,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '$progress/$target',
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSizes.s12),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: completed ? AppColors.primary : Colors.transparent,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: completed ? AppColors.primary : (isLight ? const Color(0xFFCCCCCC) : AppColors.outlineDark),
+                width: 2,
+              ),
+            ),
+            child: completed
+                ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                : null,
+          ),
+        ],
+      ),
     );
   }
 }

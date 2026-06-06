@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_sizes.dart';
-import '../theme/app_text_styles.dart';
+import '../theme/theme.dart';
 
 /// AppBarVariant controls the visual style of [AppCustomAppBar].
 enum AppBarVariant {

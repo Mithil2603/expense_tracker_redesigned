@@ -1,19 +1,22 @@
-import 'package:expense_tracker_app/features/dashboard/presentation/pages/dashboard_screen.dart';
-import 'package:flutter/material.dart';
+import 'fingo.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  // Initialize service locator dependencies
+  await init();
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: DashboardScreen(),
+  // Safeguarded Firebase initialization
+  try {
+    await Firebase.initializeApp();
+    AppLogger.i('Firebase has been successfully initialized.');
+  } catch (e, stackTrace) {
+    AppLogger.w(
+      'Firebase initialization bypassed. This is expected if Firebase '
+      'configuration files (google-services.json / GoogleService-Info.plist) are missing.',
     );
+    AppLogger.e('Firebase Init Error Details:', e, stackTrace);
   }
+
+  runApp(const FingoApp());
 }
