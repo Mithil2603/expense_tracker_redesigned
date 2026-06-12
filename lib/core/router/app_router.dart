@@ -5,8 +5,12 @@ import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
 import '../../features/expenses/domain/entities/transaction_entity.dart';
 
 // Key for root navigator
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'root',
+);
+final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shell',
+);
 
 /// AppRouter — central navigation configuration using GoRouter.
 abstract final class AppRouter {
@@ -28,9 +32,10 @@ abstract final class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const DashboardScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
             ),
             routes: [
               GoRoute(
@@ -53,9 +58,10 @@ abstract final class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const _QuestsMockScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
             ),
           ),
           GoRoute(
@@ -64,9 +70,10 @@ abstract final class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const _AnalyticsMockScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
             ),
           ),
           GoRoute(
@@ -75,9 +82,10 @@ abstract final class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const _SubscriptionTabScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
             ),
           ),
           GoRoute(
@@ -86,9 +94,10 @@ abstract final class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const _SocialFeedScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
             ),
           ),
           GoRoute(
@@ -97,9 +106,10 @@ abstract final class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const _ProfileMockScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
             ),
           ),
         ],
@@ -162,7 +172,9 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
     final isLight = Theme.of(context).brightness == Brightness.light;
     final navBgColor = isLight ? Colors.white : AppColors.surfaceDark;
-    final navOutlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+    final navOutlineColor = isLight
+        ? const Color(0xFFE5E5E5)
+        : AppColors.outlineDark;
 
     return Scaffold(
       body: Stack(
@@ -182,10 +194,15 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: navBgColor,
                     borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: navOutlineColor, width: AppSizes.borderThick),
+                    border: Border.all(
+                      color: navOutlineColor,
+                      width: AppSizes.borderThick,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(isLight ? 0.08 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isLight ? 0.08 : 0.25,
+                        ),
                         blurRadius: 16,
                         offset: const Offset(0, 8),
                       ),
@@ -213,9 +230,10 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                         onTap: () => onItemTapped(2),
                         activeColor: AppColors.info,
                       ),
-                      
-                      const SizedBox(width: 52), // Spacer width for overlapping FAB
-                      
+
+                      const SizedBox(
+                        width: 52,
+                      ), // Spacer width for overlapping FAB
                       // Symmetrical Right side of the FAB
                       _NavBarItem(
                         icon: Icons.workspace_premium_rounded,
@@ -260,12 +278,19 @@ class _ScaffoldWithNavigation extends StatelessWidget {
       builder: (context) {
         final isLight = Theme.of(context).brightness == Brightness.light;
         final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-        final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+        final outlineColor = isLight
+            ? const Color(0xFFE5E5E5)
+            : AppColors.outlineDark;
         return Container(
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
-            border: Border.all(color: outlineColor, width: AppSizes.borderThick),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppSizes.radiusXL),
+            ),
+            border: Border.all(
+              color: outlineColor,
+              width: AppSizes.borderThick,
+            ),
           ),
           padding: const EdgeInsets.all(AppSizes.paddingLG),
           child: Column(
@@ -334,7 +359,9 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-    final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+    final outlineColor = isLight
+        ? const Color(0xFFE5E5E5)
+        : AppColors.outlineDark;
 
     showModalBottomSheet(
       context: context,
@@ -346,11 +373,18 @@ class _ScaffoldWithNavigation extends StatelessWidget {
             return Container(
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
-                border: Border.all(color: outlineColor, width: AppSizes.borderThick),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppSizes.radiusXL),
+                ),
+                border: Border.all(
+                  color: outlineColor,
+                  width: AppSizes.borderThick,
+                ),
               ),
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.paddingLG,
+                bottom:
+                    MediaQuery.of(context).viewInsets.bottom +
+                    AppSizes.paddingLG,
                 left: AppSizes.paddingLG,
                 right: AppSizes.paddingLG,
                 top: AppSizes.paddingMD,
@@ -381,7 +415,8 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: IncomeCategory.values.length,
-                      separatorBuilder: (context, idx) => const SizedBox(width: 8),
+                      separatorBuilder: (context, idx) =>
+                          const SizedBox(width: 8),
                       itemBuilder: (context, idx) {
                         final cat = IncomeCategory.values[idx];
                         final isSelected = cat == selectedCat;
@@ -434,7 +469,11 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                       final title = titleCtrl.text.trim();
                       if (title.isEmpty || amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid title and amount.')),
+                          const SnackBar(
+                            content: Text(
+                              'Please enter a valid title and amount.',
+                            ),
+                          ),
                         );
                         return;
                       }
@@ -449,7 +488,9 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Income logged successfully!')),
+                        const SnackBar(
+                          content: Text('Income logged successfully!'),
+                        ),
                       );
                     },
                   ),
@@ -471,7 +512,9 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-    final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+    final outlineColor = isLight
+        ? const Color(0xFFE5E5E5)
+        : AppColors.outlineDark;
 
     showModalBottomSheet(
       context: context,
@@ -483,11 +526,18 @@ class _ScaffoldWithNavigation extends StatelessWidget {
             return Container(
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
-                border: Border.all(color: outlineColor, width: AppSizes.borderThick),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppSizes.radiusXL),
+                ),
+                border: Border.all(
+                  color: outlineColor,
+                  width: AppSizes.borderThick,
+                ),
               ),
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.paddingLG,
+                bottom:
+                    MediaQuery.of(context).viewInsets.bottom +
+                    AppSizes.paddingLG,
                 left: AppSizes.paddingLG,
                 right: AppSizes.paddingLG,
                 top: AppSizes.paddingMD,
@@ -518,7 +568,8 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: ExpenseCategory.values.length,
-                      separatorBuilder: (context, idx) => const SizedBox(width: 8),
+                      separatorBuilder: (context, idx) =>
+                          const SizedBox(width: 8),
                       itemBuilder: (context, idx) {
                         final cat = ExpenseCategory.values[idx];
                         final isSelected = cat == selectedCat;
@@ -571,7 +622,11 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                       final title = titleCtrl.text.trim();
                       if (title.isEmpty || amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid title and amount.')),
+                          const SnackBar(
+                            content: Text(
+                              'Please enter a valid title and amount.',
+                            ),
+                          ),
                         );
                         return;
                       }
@@ -586,7 +641,9 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Expense logged successfully!')),
+                        const SnackBar(
+                          content: Text('Expense logged successfully!'),
+                        ),
                       );
                     },
                   ),
@@ -646,12 +703,16 @@ class _App3DFABState extends State<_App3DFAB> {
                 color: AppColors.primary,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   width: 1.5,
                 ),
               ),
               alignment: Alignment.center,
-              child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
+              child: const Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
             ),
           ],
         ),
@@ -676,7 +737,9 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
-    final unselectedColor = isLight ? const Color(0xFF8C8C8C) : AppColors.textTertiary;
+    final unselectedColor = isLight
+        ? const Color(0xFF8C8C8C)
+        : AppColors.textTertiary;
 
     return Expanded(
       child: GestureDetector(
@@ -708,9 +771,7 @@ class _RouteErrorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Navigation Error')),
-      body: Center(
-        child: Text('Route not found!', style: AppTextStyles.h2),
-      ),
+      body: Center(child: Text('Route not found!', style: AppTextStyles.h2)),
     );
   }
 }
@@ -744,7 +805,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
     int selectedPlanIdx = 1; // Default to Annual
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-    final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+    final outlineColor = isLight
+        ? const Color(0xFFE5E5E5)
+        : AppColors.outlineDark;
 
     showModalBottomSheet(
       context: context,
@@ -756,8 +819,13 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
-                border: Border.all(color: outlineColor, width: AppSizes.borderThick),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppSizes.radiusXL),
+                ),
+                border: Border.all(
+                  color: outlineColor,
+                  width: AppSizes.borderThick,
+                ),
               ),
               padding: const EdgeInsets.all(AppSizes.paddingLG),
               child: Column(
@@ -775,7 +843,7 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Title Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -783,7 +851,10 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                       const Text('⚡ ', style: TextStyle(fontSize: 24)),
                       Text(
                         'UPGRADE TO FINGO SUPER',
-                        style: AppTextStyles.h2.copyWith(color: AppColors.accentDark, fontWeight: FontWeight.w900),
+                        style: AppTextStyles.h2.copyWith(
+                          color: AppColors.accentDark,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       const Text(' ⚡', style: TextStyle(fontSize: 24)),
                     ],
@@ -810,7 +881,8 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                     idx: 1,
                     title: 'Fingo Premium (Annual Saver)',
                     price: '₹1,499 / yr',
-                    description: 'Everything in Plus + weekly reports & widget designs. Save 37%!',
+                    description:
+                        'Everything in Plus + weekly reports & widget designs. Save 37%!',
                     isSelected: selectedPlanIdx == 1,
                     isPopular: true,
                     onTap: () => setModalState(() => selectedPlanIdx = 1),
@@ -820,7 +892,8 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                     idx: 2,
                     title: 'Fingo Family (Group Plan)',
                     price: '₹399 / mo',
-                    description: 'Up to 5 accounts, joint budgets, shared streaks.',
+                    description:
+                        'Up to 5 accounts, joint budgets, shared streaks.',
                     isSelected: selectedPlanIdx == 2,
                     onTap: () => setModalState(() => selectedPlanIdx = 2),
                   ),
@@ -833,7 +906,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                     onTap: () {
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Welcome to Fingo Super! 🚀')),
+                        const SnackBar(
+                          content: Text('Welcome to Fingo Super! 🚀'),
+                        ),
                       );
                     },
                   ),
@@ -868,7 +943,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(AppSizes.paddingMD),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.accent.withOpacity(0.1) : AppColors.surface,
+          color: isSelected
+              ? AppColors.accent.withValues(alpha: .1)
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(AppSizes.radiusLG),
           border: Border.all(
             color: isSelected ? AppColors.accent : AppColors.outline,
@@ -893,7 +970,10 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                       if (isPopular) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.secondary,
                             borderRadius: BorderRadius.circular(4),
@@ -918,7 +998,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
             const SizedBox(width: 12),
             Text(
               price,
-              style: AppTextStyles.labelMD.copyWith(fontWeight: FontWeight.w900),
+              style: AppTextStyles.labelMD.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ],
         ),
@@ -955,12 +1037,18 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                           width: 90,
                           height: 90,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.15),
+                            color: AppColors.primary.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.primary, width: 2),
+                            border: Border.all(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
                           ),
                           alignment: Alignment.center,
-                          child: const Text('🐸', style: TextStyle(fontSize: 40)),
+                          child: const Text(
+                            '🐸',
+                            style: TextStyle(fontSize: 40),
+                          ),
                         );
                       },
                     ),
@@ -969,10 +1057,16 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(AppSizes.paddingMD),
                         decoration: BoxDecoration(
-                          color: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
-                          borderRadius: BorderRadius.circular(AppSizes.radiusLG),
+                          color: isLight
+                              ? AppColors.surfaceLight
+                              : AppColors.surfaceDark,
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusLG,
+                          ),
                           border: Border.all(
-                            color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
+                            color: isLight
+                                ? AppColors.outlineLight
+                                : AppColors.outlineDark,
                             width: AppSizes.borderThick,
                           ),
                         ),
@@ -999,7 +1093,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                         children: [
                           Text(
                             'JUNE CHALLENGE',
-                            style: AppTextStyles.overline.copyWith(color: AppColors.accentDark),
+                            style: AppTextStyles.overline.copyWith(
+                              color: AppColors.accentDark,
+                            ),
                           ),
                           const Text('🥚', style: TextStyle(fontSize: 20)),
                         ],
@@ -1007,7 +1103,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Hatch Fingo the Frog',
-                        style: AppTextStyles.labelMD.copyWith(fontWeight: FontWeight.w900),
+                        style: AppTextStyles.labelMD.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       Text(
                         'Harness smart budget habits to earn 100 XP points this month.',
@@ -1018,13 +1116,17 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                         children: [
                           Expanded(
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusFull,
+                              ),
                               child: SizedBox(
                                 height: 8,
                                 child: LinearProgressIndicator(
                                   value: (state.xp / 100.0).clamp(0.0, 1.0),
                                   color: AppColors.accent,
-                                  backgroundColor: isLight ? const Color(0xFFE5E5E5) : AppColors.bgDark,
+                                  backgroundColor: isLight
+                                      ? const Color(0xFFE5E5E5)
+                                      : AppColors.bgDark,
                                 ),
                               ),
                             ),
@@ -1032,7 +1134,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                           const SizedBox(width: 12),
                           Text(
                             '${state.xp}/100 XP',
-                            style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w800),
+                            style: AppTextStyles.caption.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ],
                       ),
@@ -1045,15 +1149,22 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                 GestureDetector(
                   onTap: _showSubscriptionPlansSheet,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppColors.accent, AppColors.secondary, AppColors.primary],
+                        colors: [
+                          AppColors.accent,
+                          AppColors.secondary,
+                          AppColors.primary,
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(AppSizes.radiusLG),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondary.withOpacity(0.3),
+                          color: AppColors.secondary.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -1075,12 +1186,17 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                               ),
                               Text(
                                 'Ad-free, unlimited health, premium badges!',
-                                style: AppTextStyles.caption.copyWith(color: Colors.white.withOpacity(0.9)),
+                                style: AppTextStyles.caption.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, color: Colors.white),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: Colors.white,
+                        ),
                       ],
                     ),
                   ),
@@ -1092,7 +1208,11 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                   children: [
                     Text("Daily Quests", style: AppTextStyles.h2),
                     const SizedBox(width: 6),
-                    const Icon(Icons.rocket_launch_rounded, color: AppColors.accent, size: 20),
+                    const Icon(
+                      Icons.rocket_launch_rounded,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -1102,10 +1222,11 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: state.quests.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 8),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final quest = state.quests[index];
-                    
+
                     final String rockIcon;
                     if (quest.completed) {
                       rockIcon = '🪙';
@@ -1131,11 +1252,13 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                           }
                         });
                       },
-                      color: quest.completed 
-                          ? (isLight ? AppColors.successSurfaceLight : AppColors.successSurfaceDark)
+                      color: quest.completed
+                          ? (isLight
+                                ? AppColors.successSurfaceLight
+                                : AppColors.successSurfaceDark)
                           : null,
-                      borderColor: quest.completed 
-                          ? AppColors.primary.withOpacity(0.6) 
+                      borderColor: quest.completed
+                          ? AppColors.primary.withValues(alpha: 0.6)
                           : null,
                       child: Row(
                         children: [
@@ -1144,12 +1267,14 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                             height: 44,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: quest.completed 
-                                  ? AppColors.primary.withOpacity(0.15) 
+                              color: quest.completed
+                                  ? AppColors.primary.withValues(alpha: 0.15)
                                   : (isLight ? Colors.white : AppColors.bgDark),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: quest.completed ? AppColors.primary : AppColors.outline,
+                                color: quest.completed
+                                    ? AppColors.primary
+                                    : AppColors.outline,
                                 width: 2,
                               ),
                             ),
@@ -1183,19 +1308,30 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                                     ),
                                   ],
                                 ),
-                                Text(quest.description, style: AppTextStyles.bodySM),
+                                Text(
+                                  quest.description,
+                                  style: AppTextStyles.bodySM,
+                                ),
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
                                     Expanded(
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+                                        borderRadius: BorderRadius.circular(
+                                          AppSizes.radiusFull,
+                                        ),
                                         child: SizedBox(
                                           height: 6,
                                           child: LinearProgressIndicator(
-                                            value: (quest.progress / quest.target).clamp(0.0, 1.0),
-                                            color: quest.completed ? AppColors.primary : AppColors.info,
-                                            backgroundColor: isLight ? const Color(0xFFE5E5E5) : AppColors.bgDark,
+                                            value:
+                                                (quest.progress / quest.target)
+                                                    .clamp(0.0, 1.0),
+                                            color: quest.completed
+                                                ? AppColors.primary
+                                                : AppColors.info,
+                                            backgroundColor: isLight
+                                                ? const Color(0xFFE5E5E5)
+                                                : AppColors.bgDark,
                                           ),
                                         ),
                                       ),
@@ -1203,7 +1339,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                                     const SizedBox(width: 8),
                                     Text(
                                       '${quest.progress}/${quest.target}',
-                                      style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w800),
+                                      style: AppTextStyles.caption.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1230,20 +1368,49 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
                   style: AppTextStyles.bodySM,
                 ),
                 const SizedBox(height: 12),
-                
+
                 AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 8,
+                  ),
                   child: Column(
                     children: [
-                      _buildLeaderboardRow(1, '👑 Alice', '420 XP', isCurrentUser: false, isGold: true),
+                      _buildLeaderboardRow(
+                        1,
+                        '👑 Alice',
+                        '420 XP',
+                        isCurrentUser: false,
+                        isGold: true,
+                      ),
                       const AppDivider(indent: 16),
-                      _buildLeaderboardRow(2, '🥈 Bob', '310 XP', isCurrentUser: false),
+                      _buildLeaderboardRow(
+                        2,
+                        '🥈 Bob',
+                        '310 XP',
+                        isCurrentUser: false,
+                      ),
                       const AppDivider(indent: 16),
-                      _buildLeaderboardRow(3, '🥉 Mithil (You)', '${state.xp} XP', isCurrentUser: true),
+                      _buildLeaderboardRow(
+                        3,
+                        '🥉 Mithil (You)',
+                        '${state.xp} XP',
+                        isCurrentUser: true,
+                      ),
                       const AppDivider(indent: 16),
-                      _buildLeaderboardRow(4, 'Dave', '20 XP', isCurrentUser: false),
+                      _buildLeaderboardRow(
+                        4,
+                        'Dave',
+                        '20 XP',
+                        isCurrentUser: false,
+                      ),
                       const AppDivider(indent: 16),
-                      _buildLeaderboardRow(5, 'Emma', '10 XP', isCurrentUser: false),
+                      _buildLeaderboardRow(
+                        5,
+                        'Emma',
+                        '10 XP',
+                        isCurrentUser: false,
+                      ),
                     ],
                   ),
                 ),
@@ -1256,7 +1423,13 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
     );
   }
 
-  Widget _buildLeaderboardRow(int rank, String name, String xpText, {required bool isCurrentUser, bool isGold = false}) {
+  Widget _buildLeaderboardRow(
+    int rank,
+    String name,
+    String xpText, {
+    required bool isCurrentUser,
+    bool isGold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
@@ -1267,7 +1440,9 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
               '$rank',
               style: AppTextStyles.labelMD.copyWith(
                 fontWeight: FontWeight.w900,
-                color: isGold ? AppColors.accentDark : (isCurrentUser ? AppColors.primary : Colors.grey),
+                color: isGold
+                    ? AppColors.accentDark
+                    : (isCurrentUser ? AppColors.primary : Colors.grey),
               ),
             ),
           ),
@@ -1350,11 +1525,18 @@ class _AnalyticsMockScreenState extends State<_AnalyticsMockScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('SAFE BUDGET', style: AppTextStyles.overline.copyWith(color: AppColors.primary)),
+                          Text(
+                            'SAFE BUDGET',
+                            style: AppTextStyles.overline.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          ),
                           Text(
                             '${remainingBudget.toCurrency()} Left',
                             style: AppTextStyles.labelSM.copyWith(
-                              color: remainingBudget < 1000.0 ? AppColors.error : AppColors.primary,
+                              color: remainingBudget < 1000.0
+                                  ? AppColors.error
+                                  : AppColors.primary,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -1375,13 +1557,19 @@ class _AnalyticsMockScreenState extends State<_AnalyticsMockScreen> {
                       ),
                       const SizedBox(height: 12),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusFull,
+                        ),
                         child: SizedBox(
                           height: 12,
                           child: LinearProgressIndicator(
                             value: budgetRatio,
-                            color: remainingBudget < 1000.0 ? AppColors.error : AppColors.primary,
-                            backgroundColor: isLight ? const Color(0xFFE5E5E5) : AppColors.bgDark,
+                            color: remainingBudget < 1000.0
+                                ? AppColors.error
+                                : AppColors.primary,
+                            backgroundColor: isLight
+                                ? const Color(0xFFE5E5E5)
+                                : AppColors.bgDark,
                           ),
                         ),
                       ),
@@ -1396,7 +1584,9 @@ class _AnalyticsMockScreenState extends State<_AnalyticsMockScreen> {
                                   : 'You are in the Fingo Green Zone! Keep up the smart saves.',
                               style: AppTextStyles.bodySM.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: remainingBudget < 1000.0 ? AppColors.error : AppColors.primary,
+                                color: remainingBudget < 1000.0
+                                    ? AppColors.error
+                                    : AppColors.primary,
                               ),
                             ),
                           ),
@@ -1455,7 +1645,12 @@ class _AnalyticsMockScreenState extends State<_AnalyticsMockScreen> {
     );
   }
 
-  Widget _buildCategoryUsageRow(String cat, double amount, Color color, IconData icon) {
+  Widget _buildCategoryUsageRow(
+    String cat,
+    double amount,
+    Color color,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: AppCard(
@@ -1596,7 +1791,11 @@ class _SubscriptionTabScreenState extends State<_SubscriptionTabScreen> {
                   shadowColor: AppColors.accentDark,
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Subscription activated! Welcome to Fingo Super 🚀')),
+                      const SnackBar(
+                        content: Text(
+                          'Subscription activated! Welcome to Fingo Super 🚀',
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -1615,7 +1814,11 @@ class _SubscriptionTabScreenState extends State<_SubscriptionTabScreen> {
     );
   }
 
-  Widget _buildBenefitCard({required IconData icon, required String title, required String desc}) {
+  Widget _buildBenefitCard({
+    required IconData icon,
+    required String title,
+    required String desc,
+  }) {
     final isLight = Theme.of(context).brightness == Brightness.light;
     return Card(
       elevation: 0,
@@ -1633,9 +1836,18 @@ class _SubscriptionTabScreenState extends State<_SubscriptionTabScreen> {
           children: [
             Icon(icon, color: AppColors.accentDark, size: 28),
             const SizedBox(height: 8),
-            Text(title, style: AppTextStyles.labelMD.copyWith(fontWeight: FontWeight.w800)),
+            Text(
+              title,
+              style: AppTextStyles.labelMD.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(desc, style: AppTextStyles.bodySM, textAlign: TextAlign.center),
+            Text(
+              desc,
+              style: AppTextStyles.bodySM,
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -1655,7 +1867,9 @@ class _SubscriptionTabScreenState extends State<_SubscriptionTabScreen> {
       child: Container(
         padding: const EdgeInsets.all(AppSizes.paddingMD),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.accent.withOpacity(0.1) : AppColors.surface,
+          color: isSelected
+              ? AppColors.accent.withValues(alpha: 0.1)
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(AppSizes.radiusLG),
           border: Border.all(
             color: isSelected ? AppColors.accent : AppColors.outline,
@@ -1680,7 +1894,10 @@ class _SubscriptionTabScreenState extends State<_SubscriptionTabScreen> {
                       if (isPopular) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.secondary,
                             borderRadius: BorderRadius.circular(4),
@@ -1705,7 +1922,9 @@ class _SubscriptionTabScreenState extends State<_SubscriptionTabScreen> {
             const SizedBox(width: 12),
             Text(
               price,
-              style: AppTextStyles.labelMD.copyWith(fontWeight: FontWeight.w900),
+              style: AppTextStyles.labelMD.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ],
         ),
@@ -1749,7 +1968,8 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
     _SocialPostItem(
       userName: 'Sarah Jones',
       avatar: '🥑',
-      content: 'Kept my daily food budget under ₹150 for 4 consecutive days! 🔥',
+      content:
+          'Kept my daily food budget under ₹150 for 4 consecutive days! 🔥',
       timeAgo: '15 mins ago',
       isAchievement: true,
       likes: 12,
@@ -1757,7 +1977,8 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
     _SocialPostItem(
       userName: 'Rahul Verma',
       avatar: '💻',
-      content: 'Any tips to reduce high electricity utilities this summer? My bills are shooting up.',
+      content:
+          'Any tips to reduce high electricity utilities this summer? My bills are shooting up.',
       timeAgo: '1 hr ago',
       likes: 5,
     ),
@@ -1803,7 +2024,9 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
   @override
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
-    final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+    final outlineColor = isLight
+        ? const Color(0xFFE5E5E5)
+        : AppColors.outlineDark;
 
     return Scaffold(
       appBar: null,
@@ -1821,10 +2044,12 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
                 ],
               ),
             ),
-            
+
             // Post creation card
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
               child: AppCard(
                 child: Row(
                   children: [
@@ -1833,7 +2058,8 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
                         controller: _postCtrl,
                         style: AppTextStyles.bodySM,
                         decoration: InputDecoration(
-                          hintText: 'Share a save, milestone or ask a question...',
+                          hintText:
+                              'Share a save, milestone or ask a question...',
                           border: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           enabledBorder: InputBorder.none,
@@ -1858,7 +2084,7 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            
+
             // Posts list
             Expanded(
               child: ListView.separated(
@@ -1872,10 +2098,14 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
                 itemBuilder: (context, idx) {
                   final post = _feedItems[idx];
                   return AppCard(
-                    color: post.isAchievement 
-                        ? (isLight ? AppColors.successSurfaceLight : AppColors.successSurfaceDark)
+                    color: post.isAchievement
+                        ? (isLight
+                              ? AppColors.successSurfaceLight
+                              : AppColors.successSurfaceDark)
                         : null,
-                    borderColor: post.isAchievement ? AppColors.primary.withOpacity(0.3) : null,
+                    borderColor: post.isAchievement
+                        ? AppColors.primary.withValues(alpha: 0.3)
+                        : null,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -1885,12 +2115,17 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
                               width: 32,
                               height: 32,
                               decoration: BoxDecoration(
-                                color: isLight ? Colors.white : AppColors.bgDark,
+                                color: isLight
+                                    ? Colors.white
+                                    : AppColors.bgDark,
                                 shape: BoxShape.circle,
                                 border: Border.all(color: outlineColor),
                               ),
                               alignment: Alignment.center,
-                              child: Text(post.avatar, style: const TextStyle(fontSize: 16)),
+                              child: Text(
+                                post.avatar,
+                                style: const TextStyle(fontSize: 16),
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -1899,17 +2134,27 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
                                 children: [
                                   Text(
                                     post.userName,
-                                    style: AppTextStyles.labelSM.copyWith(fontWeight: FontWeight.w800),
+                                    style: AppTextStyles.labelSM.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
-                                  Text(post.timeAgo, style: AppTextStyles.caption),
+                                  Text(
+                                    post.timeAgo,
+                                    style: AppTextStyles.caption,
+                                  ),
                                 ],
                               ),
                             ),
                             if (post.isAchievement) ...[
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.15),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.15,
+                                  ),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -1944,14 +2189,18 @@ class _SocialFeedScreenState extends State<_SocialFeedScreen> {
                               child: Row(
                                 children: [
                                   Icon(
-                                    post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                    post.isLiked
+                                        ? Icons.favorite_rounded
+                                        : Icons.favorite_border_rounded,
                                     color: AppColors.error,
                                     size: 18,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${post.likes}',
-                                    style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w800),
+                                    style: AppTextStyles.caption.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -2015,9 +2264,12 @@ class _ProfileMockScreenState extends State<_ProfileMockScreen> {
                         width: 90,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.15),
+                          color: AppColors.primary.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary, width: 3),
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 3,
+                          ),
                         ),
                         alignment: Alignment.center,
                         child: const Text('🐸', style: TextStyle(fontSize: 48)),
@@ -2039,7 +2291,10 @@ class _ProfileMockScreenState extends State<_ProfileMockScreen> {
                           children: [
                             const Text('👑', style: TextStyle(fontSize: 24)),
                             const SizedBox(height: 4),
-                            Text('Level ${state.level}', style: AppTextStyles.labelMD),
+                            Text(
+                              'Level ${state.level}',
+                              style: AppTextStyles.labelMD,
+                            ),
                           ],
                         ),
                       ),
@@ -2051,7 +2306,10 @@ class _ProfileMockScreenState extends State<_ProfileMockScreen> {
                           children: [
                             const Text('🔥', style: TextStyle(fontSize: 24)),
                             const SizedBox(height: 4),
-                            Text('${state.streak} Days', style: AppTextStyles.labelMD),
+                            Text(
+                              '${state.streak} Days',
+                              style: AppTextStyles.labelMD,
+                            ),
                           ],
                         ),
                       ),
@@ -2071,7 +2329,8 @@ class _ProfileMockScreenState extends State<_ProfileMockScreen> {
                 _buildAchievementRow(
                   'Budget Sentinel',
                   'Never breach budget for a week.',
-                  state.totalSpent > 0 && state.totalSpent <= state.monthlyBudget,
+                  state.totalSpent > 0 &&
+                      state.totalSpent <= state.monthlyBudget,
                 ),
                 _buildAchievementRow(
                   'Gold Miner',
@@ -2091,7 +2350,9 @@ class _ProfileMockScreenState extends State<_ProfileMockScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: AppCard(
-        color: unlocked ? null : (isLight ? const Color(0xFFF2F2F2) : const Color(0xFF1E2428)),
+        color: unlocked
+            ? null
+            : (isLight ? const Color(0xFFF2F2F2) : const Color(0xFF1E2428)),
         borderColor: unlocked ? AppColors.accent : Colors.transparent,
         child: Row(
           children: [
@@ -2101,7 +2362,12 @@ class _ProfileMockScreenState extends State<_ProfileMockScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: AppTextStyles.labelMD.copyWith(color: unlocked ? null : Colors.grey)),
+                  Text(
+                    name,
+                    style: AppTextStyles.labelMD.copyWith(
+                      color: unlocked ? null : Colors.grey,
+                    ),
+                  ),
                   Text(desc, style: AppTextStyles.bodySM),
                 ],
               ),
@@ -2133,7 +2399,10 @@ class _EditExpenseMockScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Expense')),
       body: Center(
-        child: Text('Edit Expense Screen Coming Soon!', style: AppTextStyles.h2),
+        child: Text(
+          'Edit Expense Screen Coming Soon!',
+          style: AppTextStyles.h2,
+        ),
       ),
     );
   }
@@ -2145,7 +2414,10 @@ class _AuthMockScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('Authentication Screen Coming Soon!', style: AppTextStyles.h2),
+        child: Text(
+          'Authentication Screen Coming Soon!',
+          style: AppTextStyles.h2,
+        ),
       ),
     );
   }

@@ -46,8 +46,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
 
-    final earliestWeekStart = DateTime(earliestDate.year, earliestDate.month, earliestDate.day)
-        .subtract(Duration(days: earliestDate.weekday - 1));
+    final earliestWeekStart = DateTime(
+      earliestDate.year,
+      earliestDate.month,
+      earliestDate.day,
+    ).subtract(Duration(days: earliestDate.weekday - 1));
 
     final diffDays = currentWeekStart.difference(earliestWeekStart).inDays;
     final maxPastWeeks = (diffDays / 7.0).ceil();
@@ -71,10 +74,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
+      final currentWeekStart = today.subtract(
+        Duration(days: today.weekday - 1),
+      );
 
-      final latestWeekStart = DateTime(latestDate.year, latestDate.month, latestDate.day)
-          .subtract(Duration(days: latestDate.weekday - 1));
+      final latestWeekStart = DateTime(
+        latestDate.year,
+        latestDate.month,
+        latestDate.day,
+      ).subtract(Duration(days: latestDate.weekday - 1));
 
       if (latestWeekStart.isBefore(currentWeekStart)) return false;
 
@@ -91,11 +99,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   DateTime _getStartOfWeek() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    return today.subtract(Duration(days: today.weekday - 1)).add(Duration(days: _weekOffset * 7));
+    return today
+        .subtract(Duration(days: today.weekday - 1))
+        .add(Duration(days: _weekOffset * 7));
   }
 
   DateTime _getEndOfWeek(DateTime startOfWeek) {
-    return startOfWeek.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+    return startOfWeek.add(
+      const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
+    );
   }
 
   String _getWeekLabel(DateTime start, DateTime end) {
@@ -115,7 +127,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // Filter transactions belonging to selected week
     final filteredTxs = FingoState.instance.transactions.where((tx) {
-      return tx.date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+      return tx.date.isAfter(
+            startOfWeek.subtract(const Duration(seconds: 1)),
+          ) &&
           tx.date.isBefore(endOfWeek.add(const Duration(seconds: 1)));
     }).toList();
 
@@ -151,7 +165,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 AppIconButton(
                   icon: Icons.chevron_left_rounded,
                   size: AppSizes.iconLG,
-                  color: canGoBack ? null : Colors.grey.withOpacity(0.4),
+                  color: canGoBack ? null : Colors.grey.withValues(alpha: 0.4),
                   onTap: canGoBack
                       ? () {
                           setState(() {
@@ -187,7 +201,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 AppIconButton(
                   icon: Icons.chevron_right_rounded,
                   size: AppSizes.iconLG,
-                  color: canGoForward ? null : Colors.grey.withOpacity(0.4),
+                  color: canGoForward
+                      ? null
+                      : Colors.grey.withValues(alpha: 0.4),
                   onTap: canGoForward
                       ? () {
                           setState(() {
@@ -214,7 +230,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: AppEmptyState(
                         icon: Icons.receipt_long_rounded,
                         title: 'No transactions this week',
-                        message: 'Fingo found no logged transactions for this period.',
+                        message:
+                            'Fingo found no logged transactions for this period.',
                       ),
                     ),
                   )
@@ -243,20 +260,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: groupItems.length,
-                              separatorBuilder: (context, idx) => const AppDivider(indent: 8),
+                              separatorBuilder: (context, idx) =>
+                                  const AppDivider(indent: 8),
                               itemBuilder: (context, idx) {
                                 final tx = groupItems[idx];
                                 final catColor = tx.categoryColor;
-                                final isExpense = tx.type == TransactionType.expense;
+                                final isExpense =
+                                    tx.type == TransactionType.expense;
 
                                 return ListTile(
                                   leading: Container(
                                     padding: const EdgeInsets.all(AppSizes.s8),
                                     decoration: BoxDecoration(
-                                      color: catColor.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                                      color: catColor.withValues(alpha: 0.3),
+                                      borderRadius: BorderRadius.circular(
+                                        AppSizes.radiusMD,
+                                      ),
                                       border: Border.all(
-                                        color: catColor.withOpacity(0.3),
+                                        color: catColor.withValues(alpha: 0.3),
                                         width: 1.5,
                                       ),
                                     ),
@@ -266,7 +287,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       size: 22,
                                     ),
                                   ),
-                                  title: Text(tx.title, style: AppTextStyles.labelMD),
+                                  title: Text(
+                                    tx.title,
+                                    style: AppTextStyles.labelMD,
+                                  ),
                                   subtitle: Text(
                                     '${tx.categoryName} • ${AppFormatters.formatTime(tx.date)}',
                                     style: AppTextStyles.bodySM,
@@ -276,8 +300,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     style: AppTextStyles.amountSM.copyWith(
                                       color: isExpense
                                           ? (isLight
-                                              ? AppColors.textPrimaryLight
-                                              : AppColors.textPrimaryDark)
+                                                ? AppColors.textPrimaryLight
+                                                : AppColors.textPrimaryDark)
                                           : AppColors.success,
                                       fontWeight: FontWeight.w800,
                                     ),
