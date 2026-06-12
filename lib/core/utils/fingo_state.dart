@@ -243,4 +243,17 @@ class FingoState extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// Reset user stats and logs to baseline values
+  void reset() {
+    streak = 0;
+    xp = 0;
+    hearts = 5;
+    level = 1;
+    monthlyBudget = 20000.0;
+    totalSpent = 0.0;
+    _initializeDefaults();
+    notifyListeners();
+  }
 }
+

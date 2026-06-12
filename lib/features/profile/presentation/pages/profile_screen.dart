@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/core.dart';
 import '../../../../di/injection_container.dart';
+import 'package:expense_tracker_app/features/auth/domain/usecases/sign_out.dart';
 import '../widgets/subscription_plans_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -30,6 +31,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final state = sl<FingoState>();
+    final authNotifier = sl<AuthNotifier>();
+    final displayName = authNotifier.userName;
+    final photoUrl = authNotifier.userPhotoUrl;
 
     return Scaffold(
       appBar: null,
@@ -57,22 +61,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         alignment: Alignment.center,
                         child: ClipOval(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.asset(
-                              'assets/fingo_mascot.png',
-                              width: 74,
-                              height: 74,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Text('🪙', style: TextStyle(fontSize: 48)),
-                            ),
-                          ),
+                          child: photoUrl != null && photoUrl.isNotEmpty
+                              ? Image.network(
+                                  photoUrl,
+                                  width: 90,
+                                  height: 90,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Image.asset(
+                                    'assets/fingo_mascot.png',
+                                    width: 74,
+                                    height: 74,
+                                    fit: BoxFit.contain,
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Image.asset(
+                                    'assets/fingo_mascot.png',
+                                    width: 74,
+                                    height: 74,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Text('🪙', style: TextStyle(fontSize: 48)),
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Budgeting Champion', style: AppTextStyles.h2),
-                      Text('Mithil', style: AppTextStyles.bodySM),
+                      Text(displayName, style: AppTextStyles.h2),
+                      Text('Budgeting Champion', style: AppTextStyles.bodySM),
                     ],
                   ),
                 ),
@@ -184,7 +202,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   'Collect 100 XP points.',
                   state.level > 1 || state.xp >= 100,
                 ),
+                const SizedBox(height: 24),
+                App3DButton(
+                  label: 'SIGN OUT',
+                  color: AppColors.error,
+                  shadowColor: AppColors.errorDark,
+                  onTap: () async {
+                    await sl<SignOut>().call();
+                    sl<FingoState>().reset();
+                  },
+                ),
                 const SizedBox(height: 100), // spacing for bottom bar
+
               ],
             ),
           ),
