@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../features/expenses/domain/entities/transaction_entity.dart';
+import '../../features/community/domain/entities/social_post_entity.dart';
 
 /// QuestItem — represents a gamified daily quest task.
 class QuestItem {
@@ -42,6 +43,7 @@ class FingoState extends ChangeNotifier {
 
   late List<QuestItem> quests;
   late List<TransactionEntity> transactions;
+  late List<SocialPostEntity> feedItems;
 
   void _initializeDefaults() {
     quests = [
@@ -74,6 +76,41 @@ class FingoState extends ChangeNotifier {
       ),
     ];
     transactions = [];
+    feedItems = [
+      SocialPostEntity(
+        userName: 'Sarah Jones',
+        avatar: '🥑',
+        content:
+            'Kept my daily food budget under ₹150 for 4 consecutive days! 🔥',
+        timeAgo: '15 mins ago',
+        isAchievement: true,
+        likes: 12,
+      ),
+      SocialPostEntity(
+        userName: 'Rahul Verma',
+        avatar: '💻',
+        content:
+            'Any tips to reduce high electricity utilities this summer? My bills are shooting up.',
+        timeAgo: '1 hr ago',
+        likes: 5,
+      ),
+      SocialPostEntity(
+        userName: 'Jessica Miller',
+        avatar: '🌟',
+        content: 'Levelled up to Level 2! Fingo rules! ⭐',
+        timeAgo: '3 hrs ago',
+        isAchievement: true,
+        likes: 24,
+      ),
+      SocialPostEntity(
+        userName: 'David Miller',
+        avatar: '🚗',
+        content: 'Saved ₹2,500 on transportation this week by carpooling! 💰🚘',
+        timeAgo: '5 hrs ago',
+        isAchievement: true,
+        likes: 18,
+      ),
+    ];
   }
 
   /// Add XP and handle leveling up
@@ -159,6 +196,51 @@ class FingoState extends ChangeNotifier {
 
     // Basic logging award
     awardXP(5);
+    notifyListeners();
+  }
+
+  /// Complete or progress a quest and award XP
+  void completeQuest(String questId) {
+    final quest = quests.firstWhere((q) => q.id == questId);
+    if (quest.completed) return;
+
+    if (quest.id == 'q3') {
+      quest.progress++;
+      if (quest.progress >= quest.target) {
+        quest.completed = true;
+        awardXP(quest.xpReward);
+      }
+    } else {
+      quest.completed = true;
+      awardXP(quest.xpReward);
+    }
+    notifyListeners();
+  }
+
+  /// Add a social post
+  void addSocialPost(String content) {
+    feedItems.insert(
+      0,
+      SocialPostEntity(
+        userName: 'Mithil (You)',
+        avatar: '🪙',
+        content: content,
+        timeAgo: 'Just now',
+        likes: 0,
+      ),
+    );
+    notifyListeners();
+  }
+
+  /// Toggle like state of a social post
+  void toggleLikePost(SocialPostEntity post) {
+    if (post.isLiked) {
+      post.likes--;
+      post.isLiked = false;
+    } else {
+      post.likes++;
+      post.isLiked = true;
+    }
     notifyListeners();
   }
 }

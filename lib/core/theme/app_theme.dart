@@ -95,10 +95,14 @@ abstract final class AppTheme {
   }) {
     final systemOverlay = SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness: brightness == Brightness.dark
+          ? Brightness.light
+          : Brightness.dark,
       statusBarBrightness: brightness,
       systemNavigationBarColor: scaffoldBg,
-      systemNavigationBarIconBrightness: brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+      systemNavigationBarIconBrightness: brightness == Brightness.dark
+          ? Brightness.light
+          : Brightness.dark,
     );
 
     // Prepare typography tinted with context colors
@@ -138,7 +142,10 @@ abstract final class AppTheme {
         centerTitle: true,
         titleSpacing: AppSizes.screenHPadding,
         iconTheme: IconThemeData(color: textPrimary, size: AppSizes.iconMD),
-        actionsIconTheme: IconThemeData(color: textSecondary, size: AppSizes.iconMD),
+        actionsIconTheme: IconThemeData(
+          color: textSecondary,
+          size: AppSizes.iconMD,
+        ),
         titleTextStyle: AppTextStyles.h3.copyWith(color: textPrimary),
         systemOverlayStyle: systemOverlay,
       ),
@@ -176,7 +183,10 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           disabledForegroundColor: textTertiary,
-          side: BorderSide(color: AppColors.primary, width: AppSizes.borderThick),
+          side: BorderSide(
+            color: AppColors.primary,
+            width: AppSizes.borderThick,
+          ),
           minimumSize: const Size(double.infinity, AppSizes.buttonHeightLG),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.radiusMD),
@@ -208,29 +218,46 @@ abstract final class AppTheme {
         ),
         hintStyle: AppTextStyles.bodyMD.copyWith(color: textTertiary),
         labelStyle: AppTextStyles.labelMD.copyWith(color: textSecondary),
-        floatingLabelStyle: AppTextStyles.labelSM.copyWith(color: AppColors.primary),
+        floatingLabelStyle: AppTextStyles.labelSM.copyWith(
+          color: AppColors.primary,
+        ),
         errorStyle: AppTextStyles.bodySM.copyWith(color: AppColors.error),
         prefixIconColor: textTertiary,
         suffixIconColor: textSecondary,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusMD),
-          borderSide: BorderSide(color: outlineColor, width: AppSizes.borderThick),
+          borderSide: BorderSide(
+            color: outlineColor,
+            width: AppSizes.borderThick,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusMD),
-          borderSide: BorderSide(color: outlineColor, width: AppSizes.borderThick),
+          borderSide: BorderSide(
+            color: outlineColor,
+            width: AppSizes.borderThick,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusMD),
-          borderSide: const BorderSide(color: AppColors.primary, width: AppSizes.borderThick * 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.primary,
+            width: AppSizes.borderThick * 1.5,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusMD),
-          borderSide: const BorderSide(color: AppColors.error, width: AppSizes.borderThick),
+          borderSide: const BorderSide(
+            color: AppColors.error,
+            width: AppSizes.borderThick,
+          ),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusMD),
-          borderSide: const BorderSide(color: AppColors.error, width: AppSizes.borderThick * 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.error,
+            width: AppSizes.borderThick * 1.5,
+          ),
         ),
       ),
 
@@ -244,10 +271,12 @@ abstract final class AppTheme {
       // ── Chip ─────────────────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
         backgroundColor: cardBg,
-        selectedColor: AppColors.primary.withOpacity(0.15),
+        selectedColor: AppColors.primary.withValues(alpha: 0.15),
         disabledColor: outlineColor,
         labelStyle: AppTextStyles.labelSM.copyWith(color: textSecondary),
-        secondaryLabelStyle: AppTextStyles.labelSM.copyWith(color: AppColors.primary),
+        secondaryLabelStyle: AppTextStyles.labelSM.copyWith(
+          color: AppColors.primary,
+        ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSizes.paddingSM,
           vertical: AppSizes.paddingXS,

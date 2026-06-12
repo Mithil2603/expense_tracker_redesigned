@@ -52,9 +52,9 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.backgroundColor,
     this.titleStyle,
   }) : assert(
-          title != null || titleWidget != null || !automaticallyImplyLeading,
-          'Provide either title or titleWidget.',
-        );
+         title != null || titleWidget != null || !automaticallyImplyLeading,
+         'Provide either title or titleWidget.',
+       );
 
   /// Plain text title. Ignored if [titleWidget] is provided.
   final String? title;
@@ -92,24 +92,26 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-        AppSizes.appBarHeight + (bottom?.preferredSize.height ?? 0),
-      );
+    AppSizes.appBarHeight + (bottom?.preferredSize.height ?? 0),
+  );
 
   // ─── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
-    final showLeading = leading != null || (automaticallyImplyLeading && canPop);
+    final showLeading =
+        leading != null || (automaticallyImplyLeading && canPop);
 
-    final resolvedBg = backgroundColor ?? _resolveBackground(variant);
+    final resolvedBg = backgroundColor ?? _resolveBackground(variant, context);
+    final isLight = Theme.of(context).brightness == Brightness.light;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: AppColors.background,
-        systemNavigationBarIconBrightness: Brightness.light,
+        statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: isLight ? AppColors.bgLight : AppColors.bgDark,
+        systemNavigationBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
       ),
       child: Container(
         color: resolvedBg,
@@ -130,17 +132,30 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       if (showLeading) ...[
                         _LeadingButton(
                           custom: leading,
-                          onTap: onLeadingTap ?? () => Navigator.of(context).pop(),
+                          onTap:
+                              onLeadingTap ?? () => Navigator.of(context).pop(),
                         ),
                         const SizedBox(width: AppSizes.s12),
                       ],
 
                       // ── Title ────────────────────────────────────────────
                       if (!centerTitle)
-                        Expanded(child: _TitleSection(title: title, titleWidget: titleWidget, subtitle: subtitle, style: titleStyle)),
+                        Expanded(
+                          child: _TitleSection(
+                            title: title,
+                            titleWidget: titleWidget,
+                            subtitle: subtitle,
+                            style: titleStyle,
+                          ),
+                        ),
                       if (centerTitle) ...[
                         Expanded(child: const SizedBox.shrink()),
-                        _TitleSection(title: title, titleWidget: titleWidget, subtitle: subtitle, style: titleStyle),
+                        _TitleSection(
+                          title: title,
+                          titleWidget: titleWidget,
+                          subtitle: subtitle,
+                          style: titleStyle,
+                        ),
                         const Spacer(),
                       ],
 
@@ -162,14 +177,15 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Color _resolveBackground(AppBarVariant v) {
+  Color _resolveBackground(AppBarVariant v, BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     switch (v) {
       case AppBarVariant.transparent:
         return Colors.transparent;
       case AppBarVariant.solid:
-        return AppColors.surface;
+        return isLight ? AppColors.surfaceLight : AppColors.surfaceDark;
       case AppBarVariant.frosted:
-        return AppColors.surface.withOpacity(0.85);
+        return (isLight ? AppColors.surfaceLight : AppColors.surfaceDark).withValues(alpha: 0.85);
     }
   }
 }
@@ -177,7 +193,12 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 // ─── Internal Widgets ─────────────────────────────────────────────────────────
 
 class _TitleSection extends StatelessWidget {
-  const _TitleSection({this.title, this.titleWidget, this.subtitle, this.style});
+  const _TitleSection({
+    this.title,
+    this.titleWidget,
+    this.subtitle,
+    this.style,
+  });
 
   final String? title;
   final Widget? titleWidget;
@@ -193,14 +214,26 @@ class _TitleSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title ?? '', style: style ?? AppTextStyles.h3, overflow: TextOverflow.ellipsis),
+          Text(
+            title ?? '',
+            style: style ?? AppTextStyles.h3,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 1),
-          Text(subtitle!, style: AppTextStyles.caption, overflow: TextOverflow.ellipsis),
+          Text(
+            subtitle!,
+            style: AppTextStyles.caption,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       );
     }
 
-    return Text(title ?? '', style: style ?? AppTextStyles.h3, overflow: TextOverflow.ellipsis);
+    return Text(
+      title ?? '',
+      style: style ?? AppTextStyles.h3,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
 
@@ -262,7 +295,11 @@ class _AppBarIconButton extends StatelessWidget {
             width: AppSizes.s40,
             height: AppSizes.s40,
             alignment: Alignment.center,
-            child: Icon(icon, color: AppColors.textPrimary, size: AppSizes.iconMD),
+            child: Icon(
+              icon,
+              color: Theme.of(context).colorScheme.onSurface,
+              size: AppSizes.iconMD,
+            ),
           ),
         ),
       ),
@@ -285,9 +322,10 @@ class _AppBarDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     return Container(
       height: AppSizes.borderThin,
-      color: AppColors.outline.withOpacity(0.5),
+      color: (isLight ? AppColors.outlineLight : AppColors.outlineDark).withValues(alpha: 0.5),
     );
   }
 }
