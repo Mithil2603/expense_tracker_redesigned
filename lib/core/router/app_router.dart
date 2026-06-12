@@ -34,8 +34,8 @@ abstract final class AppRouter {
               child: const DashboardScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
+                return FadeTransition(opacity: animation, child: child);
+              },
             ),
             routes: [
               GoRoute(
@@ -57,11 +57,11 @@ abstract final class AppRouter {
             name: AppRoutes.questsName,
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
-              child: const _QuestsMockScreen(),
+              child: const _CommunityHubScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
+                return FadeTransition(opacity: animation, child: child);
+              },
             ),
           ),
           GoRoute(
@@ -72,32 +72,8 @@ abstract final class AppRouter {
               child: const _AnalyticsMockScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.subscriptionsPath,
-            name: AppRoutes.subscriptionsName,
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const _SubscriptionTabScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.feedPath,
-            name: AppRoutes.feedName,
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const _SocialFeedScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
+                return FadeTransition(opacity: animation, child: child);
+              },
             ),
           ),
           GoRoute(
@@ -108,8 +84,8 @@ abstract final class AppRouter {
               child: const _ProfileMockScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
+                return FadeTransition(opacity: animation, child: child);
+              },
             ),
           ),
         ],
@@ -141,9 +117,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
       if (location.startsWith(AppRoutes.dashboardPath)) return 0;
       if (location.startsWith(AppRoutes.questsPath)) return 1;
       if (location.startsWith(AppRoutes.analyticsPath)) return 2;
-      if (location.startsWith(AppRoutes.subscriptionsPath)) return 3;
-      if (location.startsWith(AppRoutes.feedPath)) return 4;
-      if (location.startsWith(AppRoutes.profilePath)) return 5;
+      if (location.startsWith(AppRoutes.profilePath)) return 3;
       return 0;
     }
 
@@ -159,12 +133,6 @@ class _ScaffoldWithNavigation extends StatelessWidget {
           context.goNamed(AppRoutes.analyticsName);
           break;
         case 3:
-          context.goNamed(AppRoutes.subscriptionsName);
-          break;
-        case 4:
-          context.goNamed(AppRoutes.feedName);
-          break;
-        case 5:
           context.goNamed(AppRoutes.profileName);
           break;
       }
@@ -224,33 +192,21 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                         onTap: () => onItemTapped(1),
                         activeColor: AppColors.accent,
                       ),
-                      _NavBarItem(
-                        icon: Icons.bar_chart_rounded,
-                        isSelected: calculateSelectedIndex() == 2,
-                        onTap: () => onItemTapped(2),
-                        activeColor: AppColors.info,
-                      ),
 
                       const SizedBox(
                         width: 52,
                       ), // Spacer width for overlapping FAB
                       // Symmetrical Right side of the FAB
                       _NavBarItem(
-                        icon: Icons.workspace_premium_rounded,
-                        isSelected: calculateSelectedIndex() == 3,
-                        onTap: () => onItemTapped(3),
-                        activeColor: AppColors.accentDark,
-                      ),
-                      _NavBarItem(
-                        icon: Icons.public_rounded,
-                        isSelected: calculateSelectedIndex() == 4,
-                        onTap: () => onItemTapped(4),
-                        activeColor: AppColors.primary,
+                        icon: Icons.bar_chart_rounded,
+                        isSelected: calculateSelectedIndex() == 2,
+                        onTap: () => onItemTapped(2),
+                        activeColor: AppColors.info,
                       ),
                       _NavBarItem(
                         icon: Icons.person_rounded,
-                        isSelected: calculateSelectedIndex() == 5,
-                        onTap: () => onItemTapped(5),
+                        isSelected: calculateSelectedIndex() == 3,
+                        onTap: () => onItemTapped(3),
                         activeColor: AppColors.success,
                       ),
                     ],
@@ -278,19 +234,12 @@ class _ScaffoldWithNavigation extends StatelessWidget {
       builder: (context) {
         final isLight = Theme.of(context).brightness == Brightness.light;
         final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-        final outlineColor = isLight
-            ? const Color(0xFFE5E5E5)
-            : AppColors.outlineDark;
+        final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
         return Container(
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppSizes.radiusXL),
-            ),
-            border: Border.all(
-              color: outlineColor,
-              width: AppSizes.borderThick,
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
+            border: Border.all(color: outlineColor, width: AppSizes.borderThick),
           ),
           padding: const EdgeInsets.all(AppSizes.paddingLG),
           child: Column(
@@ -359,9 +308,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-    final outlineColor = isLight
-        ? const Color(0xFFE5E5E5)
-        : AppColors.outlineDark;
+    final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
 
     showModalBottomSheet(
       context: context,
@@ -373,18 +320,11 @@ class _ScaffoldWithNavigation extends StatelessWidget {
             return Container(
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSizes.radiusXL),
-                ),
-                border: Border.all(
-                  color: outlineColor,
-                  width: AppSizes.borderThick,
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
+                border: Border.all(color: outlineColor, width: AppSizes.borderThick),
               ),
               padding: EdgeInsets.only(
-                bottom:
-                    MediaQuery.of(context).viewInsets.bottom +
-                    AppSizes.paddingLG,
+                bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.paddingLG,
                 left: AppSizes.paddingLG,
                 right: AppSizes.paddingLG,
                 top: AppSizes.paddingMD,
@@ -415,8 +355,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: IncomeCategory.values.length,
-                      separatorBuilder: (context, idx) =>
-                          const SizedBox(width: 8),
+                      separatorBuilder: (context, idx) => const SizedBox(width: 8),
                       itemBuilder: (context, idx) {
                         final cat = IncomeCategory.values[idx];
                         final isSelected = cat == selectedCat;
@@ -469,11 +408,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                       final title = titleCtrl.text.trim();
                       if (title.isEmpty || amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Please enter a valid title and amount.',
-                            ),
-                          ),
+                          const SnackBar(content: Text('Please enter a valid title and amount.')),
                         );
                         return;
                       }
@@ -488,9 +423,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Income logged successfully!'),
-                        ),
+                        const SnackBar(content: Text('Income logged successfully!')),
                       );
                     },
                   ),
@@ -512,9 +445,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-    final outlineColor = isLight
-        ? const Color(0xFFE5E5E5)
-        : AppColors.outlineDark;
+    final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
 
     showModalBottomSheet(
       context: context,
@@ -526,18 +457,11 @@ class _ScaffoldWithNavigation extends StatelessWidget {
             return Container(
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSizes.radiusXL),
-                ),
-                border: Border.all(
-                  color: outlineColor,
-                  width: AppSizes.borderThick,
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
+                border: Border.all(color: outlineColor, width: AppSizes.borderThick),
               ),
               padding: EdgeInsets.only(
-                bottom:
-                    MediaQuery.of(context).viewInsets.bottom +
-                    AppSizes.paddingLG,
+                bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.paddingLG,
                 left: AppSizes.paddingLG,
                 right: AppSizes.paddingLG,
                 top: AppSizes.paddingMD,
@@ -568,8 +492,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: ExpenseCategory.values.length,
-                      separatorBuilder: (context, idx) =>
-                          const SizedBox(width: 8),
+                      separatorBuilder: (context, idx) => const SizedBox(width: 8),
                       itemBuilder: (context, idx) {
                         final cat = ExpenseCategory.values[idx];
                         final isSelected = cat == selectedCat;
@@ -622,11 +545,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
                       final title = titleCtrl.text.trim();
                       if (title.isEmpty || amount <= 0) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Please enter a valid title and amount.',
-                            ),
-                          ),
+                          const SnackBar(content: Text('Please enter a valid title and amount.')),
                         );
                         return;
                       }
@@ -641,9 +560,7 @@ class _ScaffoldWithNavigation extends StatelessWidget {
 
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Expense logged successfully!'),
-                        ),
+                        const SnackBar(content: Text('Expense logged successfully!')),
                       );
                     },
                   ),
@@ -776,13 +693,150 @@ class _RouteErrorScreen extends StatelessWidget {
   }
 }
 
-class _QuestsMockScreen extends StatefulWidget {
-  const _QuestsMockScreen();
+class _HubTabToggle extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onTabChanged;
+
+  const _HubTabToggle({
+    required this.selectedIndex,
+    required this.onTabChanged,
+  });
+
   @override
-  State<_QuestsMockScreen> createState() => _QuestsMockScreenState();
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final bgColor = isLight ? const Color(0xFFF0F0F0) : AppColors.surfaceDark;
+    final activeColor = AppColors.primary;
+
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(AppSizes.radiusLG),
+        border: Border.all(
+          color: isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark,
+          width: AppSizes.borderThick,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onTabChanged(0),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: selectedIndex == 0 ? activeColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                  boxShadow: selectedIndex == 0
+                      ? [
+                          BoxShadow(
+                            color: activeColor.withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'Daily Quests 🏆',
+                  style: AppTextStyles.labelMD.copyWith(
+                    color: selectedIndex == 0
+                        ? Colors.white
+                        : (isLight ? Colors.black87 : Colors.white70),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onTabChanged(1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: selectedIndex == 1 ? activeColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                  boxShadow: selectedIndex == 1
+                      ? [
+                          BoxShadow(
+                            color: activeColor.withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'Social Feed 💬',
+                  style: AppTextStyles.labelMD.copyWith(
+                    color: selectedIndex == 1
+                        ? Colors.white
+                        : (isLight ? Colors.black87 : Colors.white70),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _QuestsMockScreenState extends State<_QuestsMockScreen> {
+class _CommunityHubScreen extends StatefulWidget {
+  const _CommunityHubScreen();
+
+  @override
+  State<_CommunityHubScreen> createState() => _CommunityHubScreenState();
+}
+
+class _CommunityHubScreenState extends State<_CommunityHubScreen> {
+  int _selectedTab = 0; // 0 = Quests, 1 = Feed
+  final TextEditingController _postCtrl = TextEditingController();
+
+  final List<_SocialPostItem> _feedItems = [
+    _SocialPostItem(
+      userName: 'Sarah Jones',
+      avatar: '🥑',
+      content:
+          'Kept my daily food budget under ₹150 for 4 consecutive days! 🔥',
+      timeAgo: '15 mins ago',
+      isAchievement: true,
+      likes: 12,
+    ),
+    _SocialPostItem(
+      userName: 'Rahul Verma',
+      avatar: '💻',
+      content:
+          'Any tips to reduce high electricity utilities this summer? My bills are shooting up.',
+      timeAgo: '1 hr ago',
+      likes: 5,
+    ),
+    _SocialPostItem(
+      userName: 'Jessica Miller',
+      avatar: '🌟',
+      content: 'Levelled up to Level 2! Fingo rules! ⭐',
+      timeAgo: '3 hrs ago',
+      isAchievement: true,
+      likes: 24,
+    ),
+    _SocialPostItem(
+      userName: 'David Miller',
+      avatar: '🚗',
+      content: 'Saved ₹2,500 on transportation this week by carpooling! 💰🚘',
+      timeAgo: '5 hrs ago',
+      isAchievement: true,
+      likes: 18,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -792,6 +846,7 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
   @override
   void dispose() {
     FingoState.instance.removeListener(_refresh);
+    _postCtrl.dispose();
     super.dispose();
   }
 
@@ -799,208 +854,59 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
     if (mounted) setState(() {});
   }
 
-  // ─── Subscriptions Dialog ──────────────────────────────────────────────────
+  void _addPost() {
+    final text = _postCtrl.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _feedItems.insert(
+        0,
+        _SocialPostItem(
+          userName: 'Mithil (You)',
+          avatar: '🐸',
+          content: text,
+          timeAgo: 'Just now',
+          likes: 0,
+        ),
+      );
+      _postCtrl.clear();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Milestone shared globally! 🌎')),
+    );
+  }
 
-  void _showSubscriptionPlansSheet() {
-    int selectedPlanIdx = 1; // Default to Annual
+  @override
+  Widget build(BuildContext context) {
+    final state = FingoState.instance;
     final isLight = Theme.of(context).brightness == Brightness.light;
-    final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
     final outlineColor = isLight
         ? const Color(0xFFE5E5E5)
         : AppColors.outlineDark;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSizes.radiusXL),
-                ),
-                border: Border.all(
-                  color: outlineColor,
-                  width: AppSizes.borderThick,
-                ),
-              ),
-              padding: const EdgeInsets.all(AppSizes.paddingLG),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: outlineColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Title Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('⚡ ', style: TextStyle(fontSize: 24)),
-                      Text(
-                        'UPGRADE TO FINGO SUPER',
-                        style: AppTextStyles.h2.copyWith(
-                          color: AppColors.accentDark,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const Text(' ⚡', style: TextStyle(fontSize: 24)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Unlock your full financial potential with zero interruptions.',
-                    style: AppTextStyles.bodySM,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Plans selection list
-                  _buildSubscriptionPlanRow(
-                    idx: 0,
-                    title: 'Fingo Plus (Monthly)',
-                    price: '₹199 / mo',
-                    description: 'No ads, unlimited health, premium badges.',
-                    isSelected: selectedPlanIdx == 0,
-                    onTap: () => setModalState(() => selectedPlanIdx = 0),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSubscriptionPlanRow(
-                    idx: 1,
-                    title: 'Fingo Premium (Annual Saver)',
-                    price: '₹1,499 / yr',
-                    description:
-                        'Everything in Plus + weekly reports & widget designs. Save 37%!',
-                    isSelected: selectedPlanIdx == 1,
-                    isPopular: true,
-                    onTap: () => setModalState(() => selectedPlanIdx = 1),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSubscriptionPlanRow(
-                    idx: 2,
-                    title: 'Fingo Family (Group Plan)',
-                    price: '₹399 / mo',
-                    description:
-                        'Up to 5 accounts, joint budgets, shared streaks.',
-                    isSelected: selectedPlanIdx == 2,
-                    onTap: () => setModalState(() => selectedPlanIdx = 2),
-                  ),
-                  const SizedBox(height: 24),
-
-                  App3DButton(
-                    label: 'Start 7-Day Free Trial',
-                    color: AppColors.accent,
-                    shadowColor: AppColors.accentDark,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Welcome to Fingo Super! 🚀'),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Cancel anytime in Google Play Store. Terms apply.',
-                    style: AppTextStyles.caption,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildSubscriptionPlanRow({
-    required int idx,
-    required String title,
-    required String price,
-    required String description,
-    required bool isSelected,
-    bool isPopular = false,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(AppSizes.paddingMD),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.accent.withValues(alpha: .1)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSizes.radiusLG),
-          border: Border.all(
-            color: isSelected ? AppColors.accent : AppColors.outline,
-            width: isSelected ? AppSizes.borderThick : AppSizes.borderThin,
-          ),
-        ),
-        child: Row(
+    return Scaffold(
+      appBar: null,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        title,
-                        style: AppTextStyles.labelMD.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: isSelected ? AppColors.accentDark : null,
-                        ),
-                      ),
-                      if (isPopular) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'POPULAR',
-                            style: AppTextStyles.caption.copyWith(
-                              color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(description, style: AppTextStyles.bodySM),
-                ],
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+                vertical: 12,
+              ),
+              child: _HubTabToggle(
+                selectedIndex: _selectedTab,
+                onTabChanged: (val) {
+                  setState(() {
+                    _selectedTab = val;
+                  });
+                },
               ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              price,
-              style: AppTextStyles.labelMD.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+            Expanded(
+              child: _selectedTab == 0
+                  ? _buildQuestsView(state, isLight)
+                  : _buildFeedView(isLight, outlineColor),
             ),
           ],
         ),
@@ -1008,417 +914,331 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
     );
   }
 
-  // ─── Build ─────────────────────────────────────────────────────────────────
+  Widget _buildQuestsView(FingoState state, bool isLight) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(
+        left: AppSizes.screenHPadding,
+        right: AppSizes.screenHPadding,
+        bottom: 100, // spacing for bottom bar
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Mascot Comic Box (Duolingo Style Speech bubble)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset(
+                'assets/fingo_mascot.png',
+                width: 90,
+                height: 90,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.primary,
+                        width: 2,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      '🐸',
+                      style: TextStyle(fontSize: 40),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(AppSizes.paddingMD),
+                  decoration: BoxDecoration(
+                    color: isLight
+                        ? AppColors.surfaceLight
+                        : AppColors.surfaceDark,
+                    borderRadius: BorderRadius.circular(
+                      AppSizes.radiusLG,
+                    ),
+                    border: Border.all(
+                      color: isLight
+                          ? AppColors.outlineLight
+                          : AppColors.outlineDark,
+                      width: AppSizes.borderThick,
+                    ),
+                  ),
+                  child: Text(
+                    'Break today’s budget rocks to collect rewards and climb the Ruby division! 💎',
+                    style: AppTextStyles.bodySM.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
 
-  @override
-  Widget build(BuildContext context) {
-    final state = FingoState.instance;
-    final isLight = Theme.of(context).brightness == Brightness.light;
-
-    return Scaffold(
-      appBar: null,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSizes.screenHPadding),
+          // 2. Monthly Quest Card
+          AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Mascot Comic Box (Duolingo Style Speech bubble)
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset(
-                      'assets/fingo_mascot.png',
-                      width: 90,
-                      height: 90,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 90,
-                          height: 90,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
+                    Text(
+                      'JUNE CHALLENGE',
+                      style: AppTextStyles.overline.copyWith(
+                        color: AppColors.accentDark,
+                      ),
+                    ),
+                    const Text('🥚', style: TextStyle(fontSize: 20)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Hatch Fingo the Frog',
+                  style: AppTextStyles.labelMD.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  'Harness smart budget habits to earn 100 XP points this month.',
+                  style: AppTextStyles.bodySM,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.radiusFull,
+                        ),
+                        child: SizedBox(
+                          height: 8,
+                          child: LinearProgressIndicator(
+                            value: (state.xp / 100.0).clamp(0.0, 1.0),
+                            color: AppColors.accent,
+                            backgroundColor: isLight
+                                ? const Color(0xFFE5E5E5)
+                                : AppColors.bgDark,
                           ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            '🐸',
-                            style: TextStyle(fontSize: 40),
-                          ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(AppSizes.paddingMD),
-                        decoration: BoxDecoration(
-                          color: isLight
-                              ? AppColors.surfaceLight
-                              : AppColors.surfaceDark,
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.radiusLG,
-                          ),
-                          border: Border.all(
-                            color: isLight
-                                ? AppColors.outlineLight
-                                : AppColors.outlineDark,
-                            width: AppSizes.borderThick,
-                          ),
-                        ),
-                        child: Text(
-                          'Break today’s budget rocks to collect rewards and climb the Ruby division! 💎',
-                          style: AppTextStyles.bodySM.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
+                    Text(
+                      '${state.xp}/100 XP',
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
 
-                // 2. Monthly Quest Card
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'JUNE CHALLENGE',
-                            style: AppTextStyles.overline.copyWith(
-                              color: AppColors.accentDark,
-                            ),
-                          ),
-                          const Text('🥚', style: TextStyle(fontSize: 20)),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Hatch Fingo the Frog',
-                        style: AppTextStyles.labelMD.copyWith(
-                          fontWeight: FontWeight.w900,
+          // 3. Daily Quests Header
+          Row(
+            children: [
+              Text("Daily Quests", style: AppTextStyles.h2),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.rocket_launch_rounded,
+                color: AppColors.accent,
+                size: 20,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Daily Quests (Rock breaking theme)
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: state.quests.length,
+            separatorBuilder: (context, index) =>
+                const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final quest = state.quests[index];
+
+              final String rockIcon;
+              if (quest.completed) {
+                rockIcon = '🪙';
+              } else if (quest.progress > 0) {
+                rockIcon = '🔨';
+              } else {
+                rockIcon = '🪨';
+              }
+
+              return AppCard(
+                onTap: () {
+                  if (quest.completed) return;
+                  setState(() {
+                    if (quest.id == 'q3') {
+                      quest.progress++;
+                      if (quest.progress >= quest.target) {
+                        quest.completed = true;
+                        state.awardXP(quest.xpReward);
+                      }
+                    } else {
+                      quest.completed = true;
+                      state.awardXP(quest.xpReward);
+                    }
+                  });
+                },
+                color: quest.completed
+                    ? (isLight
+                        ? AppColors.successSurfaceLight
+                        : AppColors.successSurfaceDark)
+                    : null,
+                borderColor: quest.completed
+                    ? AppColors.primary.withValues(alpha: 0.6)
+                    : null,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: quest.completed
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : (isLight ? Colors.white : AppColors.bgDark),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: quest.completed
+                              ? AppColors.primary
+                              : AppColors.outline,
+                          width: 2,
                         ),
                       ),
-                      Text(
-                        'Harness smart budget habits to earn 100 XP points this month.',
-                        style: AppTextStyles.bodySM,
+                      child: Text(
+                        rockIcon,
+                        style: const TextStyle(fontSize: 22),
                       ),
-                      const SizedBox(height: 12),
-                      Row(
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: ClipRRect(
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  quest.title,
+                                  style: AppTextStyles.labelMD.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '+${quest.xpReward} XP',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.accentDark,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(quest.description, style: AppTextStyles.bodySM),
+                          if (quest.target > 1) ...[
+                            const SizedBox(height: 8),
+                            ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 AppSizes.radiusFull,
                               ),
                               child: SizedBox(
-                                height: 8,
+                                height: 6,
                                 child: LinearProgressIndicator(
-                                  value: (state.xp / 100.0).clamp(0.0, 1.0),
-                                  color: AppColors.accent,
+                                  value:
+                                      (quest.progress / quest.target).clamp(0.0, 1.0),
+                                  color: AppColors.primary,
                                   backgroundColor: isLight
                                       ? const Color(0xFFE5E5E5)
                                       : AppColors.bgDark,
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            '${state.xp}/100 XP',
-                            style: AppTextStyles.caption.copyWith(
-                              fontWeight: FontWeight.w800,
+                            const SizedBox(height: 4),
+                            Text(
+                              '${quest.progress}/${quest.target}',
+                              style: AppTextStyles.caption.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // 3. Paid Subscriptions promo banner
-                GestureDetector(
-                  onTap: _showSubscriptionPlansSheet,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          AppColors.accent,
-                          AppColors.secondary,
-                          AppColors.primary,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(AppSizes.radiusLG),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('🚀 ', style: TextStyle(fontSize: 22)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'GET FINGO SUPER',
-                                style: AppTextStyles.labelMD.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              Text(
-                                'Ad-free, unlimited health, premium badges!',
-                                style: AppTextStyles.caption.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: Colors.white,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // 4. Daily Quests Header
-                Row(
-                  children: [
-                    Text("Daily Quests", style: AppTextStyles.h2),
-                    const SizedBox(width: 6),
-                    const Icon(
-                      Icons.rocket_launch_rounded,
-                      color: AppColors.accent,
-                      size: 20,
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-
-                // Daily Quests (Rock breaking theme)
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: state.quests.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final quest = state.quests[index];
-
-                    final String rockIcon;
-                    if (quest.completed) {
-                      rockIcon = '🪙';
-                    } else if (quest.progress > 0) {
-                      rockIcon = '🔨';
-                    } else {
-                      rockIcon = '🪨';
-                    }
-
-                    return AppCard(
-                      onTap: () {
-                        if (quest.completed) return;
-                        setState(() {
-                          if (quest.id == 'q3') {
-                            quest.progress++;
-                            if (quest.progress >= quest.target) {
-                              quest.completed = true;
-                              state.awardXP(quest.xpReward);
-                            }
-                          } else {
-                            quest.completed = true;
-                            state.awardXP(quest.xpReward);
-                          }
-                        });
-                      },
-                      color: quest.completed
-                          ? (isLight
-                                ? AppColors.successSurfaceLight
-                                : AppColors.successSurfaceDark)
-                          : null,
-                      borderColor: quest.completed
-                          ? AppColors.primary.withValues(alpha: 0.6)
-                          : null,
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: quest.completed
-                                  ? AppColors.primary.withValues(alpha: 0.15)
-                                  : (isLight ? Colors.white : AppColors.bgDark),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: quest.completed
-                                    ? AppColors.primary
-                                    : AppColors.outline,
-                                width: 2,
-                              ),
-                            ),
-                            child: Text(
-                              rockIcon,
-                              style: const TextStyle(fontSize: 22),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        quest.title,
-                                        style: AppTextStyles.labelMD.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '+${quest.xpReward} XP',
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.accentDark,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  quest.description,
-                                  style: AppTextStyles.bodySM,
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          AppSizes.radiusFull,
-                                        ),
-                                        child: SizedBox(
-                                          height: 6,
-                                          child: LinearProgressIndicator(
-                                            value:
-                                                (quest.progress / quest.target)
-                                                    .clamp(0.0, 1.0),
-                                            color: quest.completed
-                                                ? AppColors.primary
-                                                : AppColors.info,
-                                            backgroundColor: isLight
-                                                ? const Color(0xFFE5E5E5)
-                                                : AppColors.bgDark,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '${quest.progress}/${quest.target}',
-                                      style: AppTextStyles.caption.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+          // Weekly Leaderboard Header
+          Row(
+            children: [
+              Text("Weekly Leaderboard", style: AppTextStyles.h2),
+              const SizedBox(width: 6),
+              const Text('🏆', style: TextStyle(fontSize: 20)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                _buildLeaderboardRow(
+                  1,
+                  '🥇 Sophia',
+                  '120 XP',
+                  isCurrentUser: false,
+                  isGold: true,
                 ),
-                const SizedBox(height: 32),
-
-                // 5. Weekly Leaderboards Page Section
-                Row(
-                  children: [
-                    Text("Ruby Division League", style: AppTextStyles.h2),
-                    const SizedBox(width: 6),
-                    const Text('🏆', style: TextStyle(fontSize: 20)),
-                  ],
+                const AppDivider(indent: 16),
+                _buildLeaderboardRow(
+                  2,
+                  '🥈 Liam',
+                  '80 XP',
+                  isCurrentUser: false,
                 ),
-                Text(
-                  'Top scorers advance to the Emerald division!',
-                  style: AppTextStyles.bodySM,
+                const AppDivider(indent: 16),
+                _buildLeaderboardRow(
+                  3,
+                  '🥉 Mithil (You)',
+                  '${state.xp} XP',
+                  isCurrentUser: true,
                 ),
-                const SizedBox(height: 12),
-
-                AppCard(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    children: [
-                      _buildLeaderboardRow(
-                        1,
-                        '👑 Alice',
-                        '420 XP',
-                        isCurrentUser: false,
-                        isGold: true,
-                      ),
-                      const AppDivider(indent: 16),
-                      _buildLeaderboardRow(
-                        2,
-                        '🥈 Bob',
-                        '310 XP',
-                        isCurrentUser: false,
-                      ),
-                      const AppDivider(indent: 16),
-                      _buildLeaderboardRow(
-                        3,
-                        '🥉 Mithil (You)',
-                        '${state.xp} XP',
-                        isCurrentUser: true,
-                      ),
-                      const AppDivider(indent: 16),
-                      _buildLeaderboardRow(
-                        4,
-                        'Dave',
-                        '20 XP',
-                        isCurrentUser: false,
-                      ),
-                      const AppDivider(indent: 16),
-                      _buildLeaderboardRow(
-                        5,
-                        'Emma',
-                        '10 XP',
-                        isCurrentUser: false,
-                      ),
-                    ],
-                  ),
+                const AppDivider(indent: 16),
+                _buildLeaderboardRow(
+                  4,
+                  'Dave',
+                  '20 XP',
+                  isCurrentUser: false,
                 ),
-                const SizedBox(height: 100),
+                const AppDivider(indent: 16),
+                _buildLeaderboardRow(
+                  5,
+                  'Emma',
+                  '10 XP',
+                  isCurrentUser: false,
+                ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -1464,6 +1284,180 @@ class _QuestsMockScreenState extends State<_QuestsMockScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFeedView(bool isLight, Color outlineColor) {
+    return Column(
+      children: [
+        // Post creation card
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.screenHPadding,
+          ),
+          child: AppCard(
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _postCtrl,
+                    style: AppTextStyles.bodySM,
+                    decoration: InputDecoration(
+                      hintText:
+                          'Share a save, milestone or ask a question...',
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      hintStyle: AppTextStyles.caption,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                App3DButton(
+                  label: 'Post',
+                  expand: false,
+                  height: 36,
+                  shadowHeight: 2,
+                  color: AppColors.primary,
+                  shadowColor: AppColors.primaryDark,
+                  onTap: _addPost,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Posts list
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.only(
+              left: AppSizes.screenHPadding,
+              right: AppSizes.screenHPadding,
+              bottom: 100, // spacing for bottom bar
+            ),
+            itemCount: _feedItems.length,
+            separatorBuilder: (context, idx) => const SizedBox(height: 12),
+            itemBuilder: (context, idx) {
+              final post = _feedItems[idx];
+              return AppCard(
+                color: post.isAchievement
+                    ? (isLight
+                        ? AppColors.successSurfaceLight
+                        : AppColors.successSurfaceDark)
+                    : null,
+                borderColor: post.isAchievement
+                    ? AppColors.primary.withValues(alpha: 0.3)
+                    : null,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: isLight
+                                ? Colors.white
+                                : AppColors.bgDark,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: outlineColor),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            post.avatar,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                post.userName,
+                                style: AppTextStyles.labelSM.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                post.timeAgo,
+                                style: AppTextStyles.caption,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (post.isAchievement) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'MILESTONE 🏆',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.primary,
+                                fontSize: 8,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(post.content, style: AppTextStyles.bodySM),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (post.isLiked) {
+                                post.likes--;
+                                post.isLiked = false;
+                              } else {
+                                post.likes++;
+                                post.isLiked = true;
+                              }
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              Icon(
+                                post.isLiked
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                color: AppColors.error,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${post.likes}',
+                                style: AppTextStyles.caption.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1673,269 +1667,190 @@ class _AnalyticsMockScreenState extends State<_AnalyticsMockScreen> {
 // DEDICATED SUBSCRIPTIONS TAB SCREEN
 // ══════════════════════════════════════════════════════════════════════════════
 
-class _SubscriptionTabScreen extends StatefulWidget {
-  const _SubscriptionTabScreen();
-  @override
-  State<_SubscriptionTabScreen> createState() => _SubscriptionTabScreenState();
-}
+void _showSubscriptionPlansBottomSheet(BuildContext context) {
+  int selectedPlanIdx = 1; // Default to Annual
+  final isLight = Theme.of(context).brightness == Brightness.light;
+  final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
+  final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
 
-class _SubscriptionTabScreenState extends State<_SubscriptionTabScreen> {
-  int _selectedPlanIdx = 1;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: null,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSizes.screenHPadding),
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
+              border: Border.all(color: outlineColor, width: AppSizes.borderThick),
+            ),
+            padding: const EdgeInsets.all(AppSizes.paddingLG),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Premium Header
                 Center(
-                  child: Column(
-                    children: [
-                      const Text('⚡', style: TextStyle(fontSize: 48)),
-                      const SizedBox(height: 12),
-                      Text(
-                        'SUPER FINGO',
-                        style: AppTextStyles.display2.copyWith(
-                          color: AppColors.accentDark,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Accelerate your financial growth with premium tools.',
-                        style: AppTextStyles.bodySM,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: outlineColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 28),
-
-                // Benefits Grid
+                const SizedBox(height: 16),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: _buildBenefitCard(
-                        icon: Icons.block_rounded,
-                        title: 'Zero Ads',
-                        desc: 'Uninterrupted experience',
-                      ),
+                    const Text('⚡ ', style: TextStyle(fontSize: 24)),
+                    Text(
+                      'UPGRADE TO FINGO SUPER',
+                      style: AppTextStyles.h2.copyWith(color: AppColors.accentDark, fontWeight: FontWeight.w900),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildBenefitCard(
-                        icon: Icons.favorite_rounded,
-                        title: 'Unlimited Lives',
-                        desc: 'Never run out of health',
-                      ),
-                    ),
+                    const Text(' ⚡', style: TextStyle(fontSize: 24)),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildBenefitCard(
-                        icon: Icons.trending_up_rounded,
-                        title: 'XP Boost',
-                        desc: 'Earn double coins & rewards',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildBenefitCard(
-                        icon: Icons.auto_graph_rounded,
-                        title: 'Saver Insights',
-                        desc: 'Advanced budget metrics',
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 8),
+                Text(
+                  'Unlock your full financial potential with zero interruptions.',
+                  style: AppTextStyles.bodySM,
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 28),
-
-                // Subscriptions Card Options
-                Text('Choose Your Plan', style: AppTextStyles.h2),
-                const SizedBox(height: 12),
-                _buildPlanRow(
+                const SizedBox(height: 24),
+                _buildSubscriptionPlanRowHelper(
+                  context: context,
                   idx: 0,
                   title: 'Fingo Plus (Monthly)',
                   price: '₹199 / mo',
-                  desc: 'All core premium items.',
+                  description: 'No ads, unlimited health, premium badges.',
+                  isSelected: selectedPlanIdx == 0,
+                  onTap: () => setModalState(() => selectedPlanIdx = 0),
                 ),
                 const SizedBox(height: 12),
-                _buildPlanRow(
+                _buildSubscriptionPlanRowHelper(
+                  context: context,
                   idx: 1,
                   title: 'Fingo Premium (Annual Saver)',
                   price: '₹1,499 / yr',
-                  desc: 'Everything in Plus + weekly reports. Save 37%!',
+                  description: 'Everything in Plus + weekly reports & widget designs. Save 37%!',
+                  isSelected: selectedPlanIdx == 1,
                   isPopular: true,
+                  onTap: () => setModalState(() => selectedPlanIdx = 1),
                 ),
                 const SizedBox(height: 12),
-                _buildPlanRow(
+                _buildSubscriptionPlanRowHelper(
+                  context: context,
                   idx: 2,
-                  title: 'Fingo Family (Group Saver)',
+                  title: 'Fingo Family (Group Plan)',
                   price: '₹399 / mo',
-                  desc: 'Up to 5 members with shared streaks.',
+                  description: 'Up to 5 accounts, joint budgets, shared streaks.',
+                  isSelected: selectedPlanIdx == 2,
+                  onTap: () => setModalState(() => selectedPlanIdx = 2),
                 ),
-                const SizedBox(height: 28),
-
+                const SizedBox(height: 24),
                 App3DButton(
                   label: 'Start 7-Day Free Trial',
                   color: AppColors.accent,
                   shadowColor: AppColors.accentDark,
                   onTap: () {
+                    Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Subscription activated! Welcome to Fingo Super 🚀',
-                        ),
-                      ),
+                      const SnackBar(content: Text('Welcome to Fingo Super! 🚀')),
                     );
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
-                  'Auto-renews at Google Play Store settings. Cancel anytime.',
+                  'Cancel anytime in Google Play Store. Terms apply.',
                   style: AppTextStyles.caption,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 100), // spacing for navigation bar
+                const SizedBox(height: 12),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+Widget _buildSubscriptionPlanRowHelper({
+  required BuildContext context,
+  required int idx,
+  required String title,
+  required String price,
+  required String description,
+  required bool isSelected,
+  bool isPopular = false,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.all(AppSizes.paddingMD),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.accent.withValues(alpha: .1) : AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSizes.radiusLG),
+        border: Border.all(
+          color: isSelected ? AppColors.accent : AppColors.outline,
+          width: isSelected ? AppSizes.borderThick : AppSizes.borderThin,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.labelMD.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: isSelected ? AppColors.accentDark : null,
+                      ),
+                    ),
+                    if (isPopular) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'POPULAR',
+                          style: AppTextStyles.caption.copyWith(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(description, style: AppTextStyles.bodySM),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBenefitCard({
-    required IconData icon,
-    required String title,
-    required String desc,
-  }) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    return Card(
-      elevation: 0,
-      color: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.radiusLG),
-        side: BorderSide(
-          color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
-          width: AppSizes.borderThick,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.paddingMD),
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.accentDark, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: AppTextStyles.labelMD.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              desc,
-              style: AppTextStyles.bodySM,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlanRow({
-    required int idx,
-    required String title,
-    required String price,
-    required String desc,
-    bool isPopular = false,
-  }) {
-    final isSelected = _selectedPlanIdx == idx;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedPlanIdx = idx),
-      child: Container(
-        padding: const EdgeInsets.all(AppSizes.paddingMD),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.accent.withValues(alpha: 0.1)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSizes.radiusLG),
-          border: Border.all(
-            color: isSelected ? AppColors.accent : AppColors.outline,
-            width: isSelected ? AppSizes.borderThick : AppSizes.borderThin,
+          const SizedBox(width: 12),
+          Text(
+            price,
+            style: AppTextStyles.labelMD.copyWith(fontWeight: FontWeight.w900),
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        title,
-                        style: AppTextStyles.labelMD.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: isSelected ? AppColors.accentDark : null,
-                        ),
-                      ),
-                      if (isPopular) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'POPULAR',
-                            style: AppTextStyles.caption.copyWith(
-                              color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(desc, style: AppTextStyles.bodySM),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              price,
-              style: AppTextStyles.labelMD.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
-
-// ══════════════════════════════════════════════════════════════════════════════
-// DEDICATED SOCIAL FEED / ACHIEVEMENTS SHARING SCREEN
-// ══════════════════════════════════════════════════════════════════════════════
 
 class _SocialPostItem {
   final String userName;
@@ -1956,269 +1871,7 @@ class _SocialPostItem {
   });
 }
 
-class _SocialFeedScreen extends StatefulWidget {
-  const _SocialFeedScreen();
-  @override
-  State<_SocialFeedScreen> createState() => _SocialFeedScreenState();
-}
 
-class _SocialFeedScreenState extends State<_SocialFeedScreen> {
-  final TextEditingController _postCtrl = TextEditingController();
-  final List<_SocialPostItem> _feedItems = [
-    _SocialPostItem(
-      userName: 'Sarah Jones',
-      avatar: '🥑',
-      content:
-          'Kept my daily food budget under ₹150 for 4 consecutive days! 🔥',
-      timeAgo: '15 mins ago',
-      isAchievement: true,
-      likes: 12,
-    ),
-    _SocialPostItem(
-      userName: 'Rahul Verma',
-      avatar: '💻',
-      content:
-          'Any tips to reduce high electricity utilities this summer? My bills are shooting up.',
-      timeAgo: '1 hr ago',
-      likes: 5,
-    ),
-    _SocialPostItem(
-      userName: 'Jessica Miller',
-      avatar: '🌟',
-      content: 'Levelled up to Level 2! Fingo rules! ⭐',
-      timeAgo: '3 hrs ago',
-      isAchievement: true,
-      likes: 24,
-    ),
-    _SocialPostItem(
-      userName: 'David Miller',
-      avatar: '🚗',
-      content: 'Saved ₹2,500 on transportation this week by carpooling! 💰🚘',
-      timeAgo: '5 hrs ago',
-      isAchievement: true,
-      likes: 18,
-    ),
-  ];
-
-  void _addPost() {
-    final text = _postCtrl.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _feedItems.insert(
-        0,
-        _SocialPostItem(
-          userName: 'Mithil (You)',
-          avatar: '🐸',
-          content: text,
-          timeAgo: 'Just now',
-          likes: 0,
-        ),
-      );
-      _postCtrl.clear();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Milestone shared globally! 🌎')),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    final outlineColor = isLight
-        ? const Color(0xFFE5E5E5)
-        : AppColors.outlineDark;
-
-    return Scaffold(
-      appBar: null,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Social Feed Header
-            Padding(
-              padding: const EdgeInsets.all(AppSizes.screenHPadding),
-              child: Row(
-                children: [
-                  Text('GLOBAL CHAT & SAVES', style: AppTextStyles.h2),
-                  const SizedBox(width: 8),
-                  const Text('🌎', style: TextStyle(fontSize: 22)),
-                ],
-              ),
-            ),
-
-            // Post creation card
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: AppCard(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _postCtrl,
-                        style: AppTextStyles.bodySM,
-                        decoration: InputDecoration(
-                          hintText:
-                              'Share a save, milestone or ask a question...',
-                          border: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          contentPadding: EdgeInsets.zero,
-                          hintStyle: AppTextStyles.caption,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // 3D post button
-                    App3DButton(
-                      label: 'Post',
-                      expand: false,
-                      height: 36,
-                      shadowHeight: 2,
-                      color: AppColors.primary,
-                      shadowColor: AppColors.primaryDark,
-                      onTap: _addPost,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Posts list
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.only(
-                  left: AppSizes.screenHPadding,
-                  right: AppSizes.screenHPadding,
-                  bottom: 100, // spacing for bottom bar
-                ),
-                itemCount: _feedItems.length,
-                separatorBuilder: (context, idx) => const SizedBox(height: 12),
-                itemBuilder: (context, idx) {
-                  final post = _feedItems[idx];
-                  return AppCard(
-                    color: post.isAchievement
-                        ? (isLight
-                              ? AppColors.successSurfaceLight
-                              : AppColors.successSurfaceDark)
-                        : null,
-                    borderColor: post.isAchievement
-                        ? AppColors.primary.withValues(alpha: 0.3)
-                        : null,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: isLight
-                                    ? Colors.white
-                                    : AppColors.bgDark,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: outlineColor),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                post.avatar,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    post.userName,
-                                    style: AppTextStyles.labelSM.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  Text(
-                                    post.timeAgo,
-                                    style: AppTextStyles.caption,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (post.isAchievement) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(
-                                    alpha: 0.15,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'MILESTONE 🏆',
-                                  style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.primary,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(post.content, style: AppTextStyles.bodySM),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (post.isLiked) {
-                                    post.likes--;
-                                    post.isLiked = false;
-                                  } else {
-                                    post.likes++;
-                                    post.isLiked = true;
-                                  }
-                                });
-                              },
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    post.isLiked
-                                        ? Icons.favorite_rounded
-                                        : Icons.favorite_border_rounded,
-                                    color: AppColors.error,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${post.likes}',
-                                    style: AppTextStyles.caption.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _ProfileMockScreen extends StatefulWidget {
   const _ProfileMockScreen();
@@ -2317,6 +1970,57 @@ class _ProfileMockScreenState extends State<_ProfileMockScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
+
+                // Premium Banner
+                GestureDetector(
+                  onTap: () => _showSubscriptionPlansBottomSheet(context),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.accent, AppColors.accentDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusLG),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accentDark.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('⚡', style: TextStyle(fontSize: 28)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'UPGRADE TO FINGO SUPER',
+                                style: AppTextStyles.labelMD.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              Text(
+                                'Unlock daily lives, unlimited quests, and double XP!',
+                                style: AppTextStyles.bodySM.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right_rounded, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
 
                 // Achievements section
                 Text("My Achievements", style: AppTextStyles.h2),
