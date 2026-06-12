@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/core.dart';
+import '../../../../di/injection_container.dart';
 import '../../../../features/expenses/domain/entities/transaction_entity.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -15,12 +16,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    FingoState.instance.addListener(_onStateChange);
+    sl<FingoState>().addListener(_onStateChange);
   }
 
   @override
   void dispose() {
-    FingoState.instance.removeListener(_onStateChange);
+    sl<FingoState>().removeListener(_onStateChange);
     super.dispose();
   }
 
@@ -31,7 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ─── Navigation Constraints ───────────────────────────────────────────────
 
   bool _canGoBack() {
-    final transactions = FingoState.instance.transactions;
+    final transactions = sl<FingoState>().transactions;
     if (transactions.isEmpty) return false;
 
     // Find earliest transaction date
@@ -61,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _canGoForward() {
     // Cannot go past the current week (offset 0) unless there are transactions in future weeks
     if (_weekOffset >= 0) {
-      final transactions = FingoState.instance.transactions;
+      final transactions = sl<FingoState>().transactions;
       if (transactions.isEmpty) return false;
 
       // Find latest transaction date
@@ -126,7 +127,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isLight = Theme.of(context).brightness == Brightness.light;
 
     // Filter transactions belonging to selected week
-    final filteredTxs = FingoState.instance.transactions.where((tx) {
+    final filteredTxs = sl<FingoState>().transactions.where((tx) {
       return tx.date.isAfter(
             startOfWeek.subtract(const Duration(seconds: 1)),
           ) &&

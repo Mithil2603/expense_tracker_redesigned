@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/theme.dart';
 import '../utils/fingo_state.dart';
+import '../../di/injection_container.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // APP TEXT FIELDS
@@ -94,7 +95,7 @@ class AppTextField extends StatelessWidget {
       autofillHints: autofillHints,
       autofocus: autofocus,
       onTap: onTap,
-      style: AppTextStyles.bodyMD.copyWith(color: AppColors.textPrimary),
+      style: AppTextStyles.bodyMD.copyWith(color: Theme.of(context).colorScheme.onSurface),
       cursorColor: AppColors.secondary,
       decoration: InputDecoration(
         labelText: label,
@@ -159,7 +160,7 @@ class _AppPasswordFieldState extends State<AppPasswordField> {
         child: Icon(
           _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
           size: AppSizes.iconSM,
-          color: AppColors.textSecondary,
+          color: Theme.of(context).textTheme.bodySmall?.color ?? AppColors.textSecondary,
         ),
       ),
     );
@@ -426,7 +427,7 @@ class AppIconButton extends StatelessWidget {
             child: Icon(
               icon,
               size: size,
-              color: color ?? AppColors.textSecondary,
+              color: color ?? Theme.of(context).textTheme.bodySmall?.color ?? AppColors.textSecondary,
             ),
           ),
         ),
@@ -461,8 +462,11 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? BorderRadius.circular(AppSizes.radiusLG);
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final cardBgColor = color ?? (isLight ? AppColors.surfaceLight : AppColors.surfaceDark);
+    final cardBorderColor = borderColor ?? (isLight ? AppColors.outlineLight : AppColors.outlineDark);
     return Material(
-      color: color ?? AppColors.surface,
+      color: cardBgColor,
       borderRadius: radius,
       child: InkWell(
         onTap: onTap,
@@ -471,7 +475,7 @@ class AppCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: radius,
             border: Border.all(
-              color: borderColor ?? AppColors.outline,
+              color: cardBorderColor,
               width: AppSizes.borderThin,
             ),
           ),
@@ -509,6 +513,13 @@ class AppChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activeColor = color ?? AppColors.secondary;
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final chipBgColor = selected
+        ? activeColor.withValues(alpha: 0.15)
+        : (isLight ? AppColors.surfaceLight : AppColors.surfaceDark);
+    final chipBorderColor = selected ? activeColor : (isLight ? AppColors.outlineLight : AppColors.outlineDark);
+    final chipTextColor = selected ? activeColor : (isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark);
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -518,12 +529,10 @@ class AppChip extends StatelessWidget {
           vertical: AppSizes.s6,
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? activeColor.withValues(alpha: 0.15)
-              : AppColors.surface,
+          color: chipBgColor,
           borderRadius: BorderRadius.circular(AppSizes.radiusFull),
           border: Border.all(
-            color: selected ? activeColor : AppColors.outline,
+            color: chipBorderColor,
             width: selected ? AppSizes.borderMD : AppSizes.borderThin,
           ),
         ),
@@ -534,14 +543,14 @@ class AppChip extends StatelessWidget {
               Icon(
                 icon,
                 size: AppSizes.iconXS,
-                color: selected ? activeColor : AppColors.textSecondary,
+                color: chipTextColor,
               ),
               const SizedBox(width: AppSizes.s4),
             ],
             Text(
               label,
               style: AppTextStyles.labelSM.copyWith(
-                color: selected ? activeColor : AppColors.textSecondary,
+                color: chipTextColor,
               ),
             ),
           ],
@@ -564,9 +573,10 @@ class AppDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dividerColor = Theme.of(context).colorScheme.outline;
     if (label == null) {
       return Divider(
-        color: AppColors.outline,
+        color: dividerColor,
         thickness: AppSizes.borderThin,
         indent: indent,
         endIndent: indent,
@@ -576,7 +586,7 @@ class AppDivider extends StatelessWidget {
       children: [
         Expanded(
           child: Divider(
-            color: AppColors.outline,
+            color: dividerColor,
             thickness: AppSizes.borderThin,
             indent: indent,
           ),
@@ -587,7 +597,7 @@ class AppDivider extends StatelessWidget {
         ),
         Expanded(
           child: Divider(
-            color: AppColors.outline,
+            color: dividerColor,
             thickness: AppSizes.borderThin,
             endIndent: indent,
           ),
@@ -653,29 +663,39 @@ class AppEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(AppSizes.s24),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.outline),
-              ),
-              child: Icon(
-                icon,
-                size: AppSizes.icon2XL,
-                color: AppColors.textTertiary,
-              ),
+            Builder(
+              builder: (context) {
+                final isLight = Theme.of(context).brightness == Brightness.light;
+                return Container(
+                  padding: const EdgeInsets.all(AppSizes.s24),
+                  decoration: BoxDecoration(
+                    color: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: isLight ? AppColors.outlineLight : AppColors.outlineDark),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: AppSizes.icon2XL,
+                    color: isLight ? AppColors.textTertiaryLight : AppColors.textTertiaryDark,
+                  ),
+                );
+              }
             ),
             const SizedBox(height: AppSizes.s20),
             Text(title, style: AppTextStyles.h3, textAlign: TextAlign.center),
             if (message != null) ...[
               const SizedBox(height: AppSizes.s8),
-              Text(
-                message!,
-                style: AppTextStyles.bodyMD.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-                textAlign: TextAlign.center,
+              Builder(
+                builder: (context) {
+                  final isLight = Theme.of(context).brightness == Brightness.light;
+                  return Text(
+                    message!,
+                    style: AppTextStyles.bodyMD.copyWith(
+                      color: isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
+                }
               ),
             ],
             if (actionLabel != null && onAction != null) ...[
@@ -753,7 +773,10 @@ class AppBadge extends StatelessWidget {
         AppColors.warning,
       ),
       AppBadgeVariant.info => (AppColors.infoSurfaceLight, AppColors.info),
-      AppBadgeVariant.neutral => (AppColors.surface, AppColors.textSecondary),
+      AppBadgeVariant.neutral => (
+          Theme.of(context).brightness == Brightness.light ? AppColors.surfaceLight : AppColors.surfaceDark,
+          Theme.of(context).brightness == Brightness.light ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+        ),
     };
 
     return Container(
@@ -1248,7 +1271,7 @@ class FingoGamifiedAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final state = FingoState.instance;
+    final state = sl<FingoState>();
     final isLight = Theme.of(context).brightness == Brightness.light;
 
     return AppBar(

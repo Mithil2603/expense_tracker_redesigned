@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get_it/get_it.dart';
 import '../core/network/network_info.dart';
+import '../core/utils/fingo_state.dart';
 
 /// Global Service Locator instance
 final sl = GetIt.instance;
@@ -12,4 +13,5 @@ Future<void> init() async {
 
   // ─── Core / Network ────────────────────────────────────────────────────────
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  sl.registerLazySingleton<FingoState>(() => FingoState.instance);
 }

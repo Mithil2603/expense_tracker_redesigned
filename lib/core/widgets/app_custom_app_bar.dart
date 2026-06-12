@@ -103,14 +103,15 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final showLeading =
         leading != null || (automaticallyImplyLeading && canPop);
 
-    final resolvedBg = backgroundColor ?? _resolveBackground(variant);
+    final resolvedBg = backgroundColor ?? _resolveBackground(variant, context);
+    final isLight = Theme.of(context).brightness == Brightness.light;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: AppColors.background,
-        systemNavigationBarIconBrightness: Brightness.light,
+        statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: isLight ? AppColors.bgLight : AppColors.bgDark,
+        systemNavigationBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
       ),
       child: Container(
         color: resolvedBg,
@@ -176,14 +177,15 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Color _resolveBackground(AppBarVariant v) {
+  Color _resolveBackground(AppBarVariant v, BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     switch (v) {
       case AppBarVariant.transparent:
         return Colors.transparent;
       case AppBarVariant.solid:
-        return AppColors.surface;
+        return isLight ? AppColors.surfaceLight : AppColors.surfaceDark;
       case AppBarVariant.frosted:
-        return AppColors.surface.withValues(alpha: 0.85);
+        return (isLight ? AppColors.surfaceLight : AppColors.surfaceDark).withValues(alpha: 0.85);
     }
   }
 }
@@ -295,7 +297,7 @@ class _AppBarIconButton extends StatelessWidget {
             alignment: Alignment.center,
             child: Icon(
               icon,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               size: AppSizes.iconMD,
             ),
           ),
@@ -320,9 +322,10 @@ class _AppBarDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     return Container(
       height: AppSizes.borderThin,
-      color: AppColors.outline.withValues(alpha: 0.5),
+      color: (isLight ? AppColors.outlineLight : AppColors.outlineDark).withValues(alpha: 0.5),
     );
   }
 }
