@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:expense_tracker_app/app.dart';
+import 'package:expense_tracker_app/core/core.dart';
 import 'package:expense_tracker_app/di/injection_container.dart' as di;
 import 'package:get_it/get_it.dart';
 
@@ -11,6 +12,9 @@ void main() {
   });
 
   testWidgets('Fingo App dashboard renders weekly transaction header', (WidgetTester tester) async {
+    // Force authenticated override state so router goes to dashboard
+    GetIt.instance<AuthNotifier>().setAuthenticatedOverride(true);
+
     // Build our app and trigger a frame.
     await tester.pumpWidget(const FingoApp());
 
@@ -21,3 +25,4 @@ void main() {
     expect(find.text('THIS WEEK'), findsOneWidget);
   });
 }
+

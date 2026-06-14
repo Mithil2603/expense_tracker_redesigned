@@ -11,6 +11,8 @@ import '../../features/auth/presentation/pages/auth_screen.dart';
 import 'widgets/scaffold_with_navigation.dart';
 import 'pages/route_error_screen.dart';
 
+import '../../di/injection_container.dart';
+
 // Key for root navigator
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
@@ -24,7 +26,27 @@ abstract final class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.dashboardPath,
+    refreshListenable: sl<AuthNotifier>(),
     errorBuilder: (context, state) => const RouteErrorScreen(),
+    redirect: (context, state) {
+      final authNotifier = sl<AuthNotifier>();
+      final loggedIn = authNotifier.isAuthenticated;
+      final loggingIn = state.matchedLocation == AppRoutes.authPath;
+
+      if (!loggedIn) {
+        // If not logged in and not already on the auth page, redirect to auth page
+        return loggingIn ? null : AppRoutes.authPath;
+      }
+
+      // If logged in and trying to access the auth page, redirect to dashboard
+      if (loggingIn) {
+        return AppRoutes.dashboardPath;
+      }
+
+      // No redirect needed
+      return null;
+    },
+
     routes: [
       // ─── Shell Route for Bottom Navigation ──────────────────────────────────
       ShellRoute(

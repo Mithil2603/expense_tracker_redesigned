@@ -148,6 +148,7 @@ class FingoState extends ChangeNotifier {
   }) {
     final newTx = TransactionEntity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: 'test-user-id',
       title: title,
       amount: amount,
       type: type,
@@ -156,6 +157,11 @@ class FingoState extends ChangeNotifier {
       date: date,
       paymentMethod: paymentMethod,
       notes: notes,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isRecurring: false,
+      recurringId: null,
+      processedForXp: false,
     );
     transactions.insert(0, newTx);
 
@@ -243,4 +249,17 @@ class FingoState extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// Reset user stats and logs to baseline values
+  void reset() {
+    streak = 0;
+    xp = 0;
+    hearts = 5;
+    level = 1;
+    monthlyBudget = 20000.0;
+    totalSpent = 0.0;
+    _initializeDefaults();
+    notifyListeners();
+  }
 }
+

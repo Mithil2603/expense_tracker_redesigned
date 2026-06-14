@@ -1,0 +1,21 @@
+- [x] Dependency Injection:
+  - [x] Register `FingoState` in `lib/di/injection_container.dart`.
+- [x] Refactor Social Post Model to Domain:
+  - [x] Create `lib/features/community/domain/entities/social_post_entity.dart`.
+  - [x] Delete `lib/features/community/presentation/models/social_post_item.dart`.
+- [x] Refactor FingoState:
+  - [x] Update `lib/core/utils/fingo_state.dart` with social feed state and clean business logic methods.
+- [x] Presentation Layer Decoupling:
+  - [x] Update `lib/features/community/presentation/pages/community_hub_screen.dart` to use `sl<FingoState>()` and clean actions.
+  - [x] Update `lib/features/dashboard/presentation/pages/dashboard_screen.dart` to use `sl<FingoState>()`.
+  - [x] Update `lib/features/analytics/presentation/pages/analytics_screen.dart` to use `sl<FingoState>()`.
+  - [x] Update `lib/features/profile/presentation/pages/profile_screen.dart` to use `sl<FingoState>()`.
+- [x] Firebase Authentication Integration:
+  - [x] Create `lib/core/router/auth_notifier.dart` to listen to auth changes.
+  - [x] Register `AuthNotifier` in `lib/di/injection_container.dart`.
+  - [x] Update `lib/core/router/app_router.dart` with route redirection & route protection.
+  - [x] Implement playful, premium 3D Sign In/Sign Up UI in `lib/features/auth/presentation/pages/auth_screen.dart`.
+  - [x] Add 3D Sign Out button and state reset in `lib/features/profile/presentation/pages/profile_screen.dart`.
+  - [x] Update widget tests in `test/widget_test.dart` to mock logged-in state.
+- [x] Verification:
+  - [x] Run `flutter analyze` and `flutter test` (both completed successfully with 0 errors/warnings/failures).
