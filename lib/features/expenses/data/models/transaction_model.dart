@@ -5,6 +5,7 @@ import '../../domain/entities/transaction_entity.dart';
 class TransactionModel extends TransactionEntity {
   const TransactionModel({
     required super.id,
+    required super.userId,
     required super.title,
     required super.amount,
     required super.type,
@@ -14,12 +15,18 @@ class TransactionModel extends TransactionEntity {
     super.notes,
     required super.paymentMethod,
     super.attachmentUrl,
+    required super.createdAt,
+    required super.updatedAt,
+    super.isRecurring = false,
+    super.recurringId,
+    super.processedForXp = false,
   });
 
   /// Factory constructor to parse dynamic JSON structures (such as API payloads or Firestore maps).
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
       id: json['id'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
       title: json['title'] as String? ?? '',
       amount: (json['amount'] as num? ?? 0.0).toDouble(),
       type: TransactionType.values.firstWhere(
@@ -45,6 +52,15 @@ class TransactionModel extends TransactionEntity {
         orElse: () => PaymentMethod.cash,
       ),
       attachmentUrl: json['attachmentUrl'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : DateTime.now(),
+      isRecurring: json['isRecurring'] as bool? ?? false,
+      recurringId: json['recurringId'] as String?,
+      processedForXp: json['processedForXp'] as bool? ?? false,
     );
   }
 
@@ -52,6 +68,7 @@ class TransactionModel extends TransactionEntity {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'title': title,
       'amount': amount,
       'type': type.name,
@@ -61,6 +78,11 @@ class TransactionModel extends TransactionEntity {
       'notes': notes,
       'paymentMethod': paymentMethod.name,
       'attachmentUrl': attachmentUrl,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'isRecurring': isRecurring,
+      'recurringId': recurringId,
+      'processedForXp': processedForXp,
     };
   }
 
@@ -68,6 +90,7 @@ class TransactionModel extends TransactionEntity {
   factory TransactionModel.fromEntity(TransactionEntity entity) {
     return TransactionModel(
       id: entity.id,
+      userId: entity.userId,
       title: entity.title,
       amount: entity.amount,
       type: entity.type,
@@ -77,6 +100,11 @@ class TransactionModel extends TransactionEntity {
       notes: entity.notes,
       paymentMethod: entity.paymentMethod,
       attachmentUrl: entity.attachmentUrl,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      isRecurring: entity.isRecurring,
+      recurringId: entity.recurringId,
+      processedForXp: entity.processedForXp,
     );
   }
 }

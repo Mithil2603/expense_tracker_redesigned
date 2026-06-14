@@ -148,6 +148,7 @@ class FingoState extends ChangeNotifier {
   }) {
     final newTx = TransactionEntity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: 'test-user-id',
       title: title,
       amount: amount,
       type: type,
@@ -156,6 +157,11 @@ class FingoState extends ChangeNotifier {
       date: date,
       paymentMethod: paymentMethod,
       notes: notes,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isRecurring: false,
+      recurringId: null,
+      processedForXp: false,
     );
     transactions.insert(0, newTx);
 

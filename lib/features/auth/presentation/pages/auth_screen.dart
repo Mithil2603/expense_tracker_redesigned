@@ -67,7 +67,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final isLight = Theme.of(context).brightness == Brightness.light;
 
     return BlocProvider<AuthBloc>(
-      create: (context) => sl<AuthBloc>(),
+      create: (context) => sl<AuthBloc>()..add(AutoLoginEvent()),
       child: Scaffold(
         backgroundColor: isLight ? AppColors.bgLight : AppColors.bgDark,
         body: SafeArea(
@@ -90,6 +90,61 @@ class _AuthScreenState extends State<AuthScreen> {
               }
             },
             builder: (context, state) {
+              final isAutoLoggingIn = state is AuthLoading && state.isAutoLogin;
+              
+              if (isAutoLoggingIn) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SpeechBubble(text: "Verifying your vault access... 🤫"),
+                      const SizedBox(height: 24),
+                      const FloatingMascot(),
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isLight ? Colors.white.withValues(alpha: 0.8) : AppColors.surfaceElevatedDark.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                          border: Border.all(
+                            color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
+                            width: AppSizes.borderThick,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isLight ? 0.05 : 0.2),
+                              offset: const Offset(0, 4),
+                              blurRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Restoring Session...',
+                              style: AppTextStyles.labelMD.copyWith(
+                                color: isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               final isLoadingEmail = state is AuthLoading && !state.isGoogle;
               final isLoadingGoogle = state is AuthLoading && state.isGoogle;
               final anyLoading = state is AuthLoading;

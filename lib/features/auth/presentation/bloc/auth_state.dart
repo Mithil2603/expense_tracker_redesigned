@@ -12,10 +12,11 @@ class AuthInitial extends AuthState {}
 
 class AuthLoading extends AuthState {
   final bool isGoogle;
-  const AuthLoading({this.isGoogle = false});
+  final bool isAutoLogin;
+  const AuthLoading({this.isGoogle = false, this.isAutoLogin = false});
 
   @override
-  List<Object?> get props => [isGoogle];
+  List<Object?> get props => [isGoogle, isAutoLogin];
 }
 
 class AuthSuccess extends AuthState {

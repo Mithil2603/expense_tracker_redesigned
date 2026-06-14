@@ -3,6 +3,7 @@ import '../../domain/usecases/sign_in_with_email.dart';
 import '../../domain/usecases/sign_up_with_email.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_out.dart';
+import '../../domain/usecases/auto_login.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -12,12 +13,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignUpWithEmail signUpWithEmail;
   final SignInWithGoogle signInWithGoogle;
   final SignOut signOut;
+  final AutoLogin autoLogin;
 
   AuthBloc({
     required this.signInWithEmail,
     required this.signUpWithEmail,
     required this.signInWithGoogle,
     required this.signOut,
+    required this.autoLogin,
   }) : super(AuthInitial()) {
     on<SignInWithEmailEvent>((event, emit) async {
       emit(const AuthLoading(isGoogle: false));
@@ -52,6 +55,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       result.fold(
         (failure) => emit(AuthError(failure.message)),
         (_) => emit(Unauthenticated()),
+      );
+    });
+
+    on<AutoLoginEvent>((event, emit) async {
+      emit(const AuthLoading(isAutoLogin: true));
+      final result = await autoLogin();
+      result.fold(
+        (failure) => emit(Unauthenticated()),
+        (user) => emit(AuthSuccess(user)),
       );
     });
   }
