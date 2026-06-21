@@ -92,7 +92,7 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-    AppSizes.appBarHeight + (bottom?.preferredSize.height ?? 0),
+    AppSizes.appBarHeight + (bottom?.preferredSize.height ?? 0) + AppSizes.borderThin,
   );
 
   // ─── Build ─────────────────────────────────────────────────────────────────
@@ -114,7 +114,15 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         systemNavigationBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
       ),
       child: Container(
-        color: resolvedBg,
+        decoration: BoxDecoration(
+          color: resolvedBg,
+          border: Border(
+            bottom: BorderSide(
+              color: (isLight ? AppColors.outlineLight : AppColors.outlineDark).withValues(alpha: 0.5),
+              width: AppSizes.borderThin,
+            ),
+          ),
+        ),
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -169,7 +177,6 @@ class AppCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               ?bottom,
-              const _AppBarDivider(),
             ],
           ),
         ),
@@ -317,18 +324,7 @@ class _AppBarIconButton extends StatelessWidget {
   }
 }
 
-class _AppBarDivider extends StatelessWidget {
-  const _AppBarDivider();
 
-  @override
-  Widget build(BuildContext context) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    return Container(
-      height: AppSizes.borderThin,
-      color: (isLight ? AppColors.outlineLight : AppColors.outlineDark).withValues(alpha: 0.5),
-    );
-  }
-}
 
 // ─── AppBarAction model ────────────────────────────────────────────────────────
 

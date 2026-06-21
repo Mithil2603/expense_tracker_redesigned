@@ -8,8 +8,8 @@ void showAddOptionsBottomSheet(BuildContext context) {
     context: context,
     useRootNavigator: true,
     backgroundColor: Colors.transparent,
-    builder: (context) {
-      final isLight = Theme.of(context).brightness == Brightness.light;
+    builder: (sheetContext) {
+      final isLight = Theme.of(sheetContext).brightness == Brightness.light;
       final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
       final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
       return Container(
@@ -49,7 +49,7 @@ void showAddOptionsBottomSheet(BuildContext context) {
                     shadowColor: AppColors.successDark,
                     icon: Icons.arrow_upward_rounded,
                     onTap: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(sheetContext).pop();
                       showAddIncomeSheet(context);
                     },
                   ),
@@ -62,7 +62,7 @@ void showAddOptionsBottomSheet(BuildContext context) {
                     shadowColor: AppColors.errorDark,
                     icon: Icons.arrow_downward_rounded,
                     onTap: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(sheetContext).pop();
                       showAddExpenseSheet(context);
                     },
                   ),

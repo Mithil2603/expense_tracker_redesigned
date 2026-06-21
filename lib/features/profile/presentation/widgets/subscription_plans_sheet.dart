@@ -3,9 +3,6 @@ import '../../../../core/core.dart';
 
 void showSubscriptionPlansBottomSheet(BuildContext context) {
   int selectedPlanIdx = 1; // Default to Annual
-  final isLight = Theme.of(context).brightness == Brightness.light;
-  final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
-  final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
 
   showModalBottomSheet(
     context: context,
@@ -15,6 +12,10 @@ void showSubscriptionPlansBottomSheet(BuildContext context) {
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setModalState) {
+          final isLight = Theme.of(context).brightness == Brightness.light;
+          final bgColor = isLight ? Colors.white : AppColors.surfaceDark;
+          final outlineColor = isLight ? const Color(0xFFE5E5E5) : AppColors.outlineDark;
+
           return Container(
             decoration: BoxDecoration(
               color: bgColor,
@@ -55,7 +56,9 @@ void showSubscriptionPlansBottomSheet(BuildContext context) {
                   const SizedBox(height: 8),
                   Text(
                     'Unlock your full financial potential with zero interruptions.',
-                    style: AppTextStyles.bodySM,
+                    style: AppTextStyles.bodySM.copyWith(
+                      color: isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -104,7 +107,9 @@ void showSubscriptionPlansBottomSheet(BuildContext context) {
                   const SizedBox(height: 12),
                   Text(
                     'Cancel anytime in Google Play Store. Terms apply.',
-                    style: AppTextStyles.caption,
+                    style: AppTextStyles.caption.copyWith(
+                      color: isLight ? AppColors.textTertiaryLight : AppColors.textTertiaryDark,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
@@ -128,16 +133,29 @@ Widget _buildSubscriptionPlanRowHelper({
   bool isPopular = false,
   required VoidCallback onTap,
 }) {
+  final isLight = Theme.of(context).brightness == Brightness.light;
+  final cardBgColor = isSelected
+      ? AppColors.accent.withValues(alpha: 0.12)
+      : (isLight ? AppColors.surfaceLight : AppColors.surfaceDark);
+  final borderColor = isSelected
+      ? AppColors.accent
+      : (isLight ? AppColors.outlineLight : AppColors.outlineDark);
+  final titleColor = isSelected
+      ? AppColors.accentDark
+      : (isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark);
+  final descColor = isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark;
+  final priceColor = isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark;
+
   return GestureDetector(
     onTap: onTap,
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(AppSizes.paddingMD),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.accent.withValues(alpha: .1) : AppColors.surface,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(AppSizes.radiusLG),
         border: Border.all(
-          color: isSelected ? AppColors.accent : AppColors.outline,
+          color: borderColor,
           width: isSelected ? AppSizes.borderThick : AppSizes.borderThin,
         ),
       ),
@@ -147,46 +165,52 @@ Widget _buildSubscriptionPlanRowHelper({
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        title,
-                        style: AppTextStyles.labelMD.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: isSelected ? AppColors.accentDark : null,
-                        ),
-                      ),
-                    ),
-                    if (isPopular) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'POPULAR',
-                          style: AppTextStyles.caption.copyWith(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                Text(
+                  title,
+                  style: AppTextStyles.labelMD.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: titleColor,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text(description, style: AppTextStyles.bodySM),
+                Text(
+                  description,
+                  style: AppTextStyles.bodySM.copyWith(color: descColor),
+                ),
               ],
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            price,
-            style: AppTextStyles.labelMD.copyWith(fontWeight: FontWeight.w900),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isPopular) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'POPULAR',
+                    style: AppTextStyles.caption.copyWith(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
+              Text(
+                price,
+                style: AppTextStyles.labelMD.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: priceColor,
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import '../../../../core/core.dart';
+import '../../../../core/services/notification_sync_service.dart';
 import '../../../../di/injection_container.dart';
 import 'package:expense_tracker_app/features/auth/domain/usecases/sign_out.dart';
 import '../widgets/subscription_plans_sheet.dart';
@@ -11,21 +13,172 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserver {
+  bool _trackerEnabled = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     sl<FingoState>().addListener(_refresh);
+    _loadTrackerSetting();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     sl<FingoState>().removeListener(_refresh);
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkAndSyncPermission();
+    }
+  }
+
   void _refresh() {
     if (mounted) setState(() {});
+  }
+
+  void _loadTrackerSetting() async {
+    final enabled = await sl<NotificationSyncService>().isEnabled();
+    if (mounted) {
+      setState(() {
+        _trackerEnabled = enabled;
+      });
+    }
+  }
+
+  void _checkAndSyncPermission() async {
+    final hasPermission = await NotificationsListener.hasPermission;
+    final currentlyEnabled = await sl<NotificationSyncService>().isEnabled();
+    
+    if (currentlyEnabled && hasPermission != true) {
+      await sl<NotificationSyncService>().setEnabled(false);
+      if (mounted) {
+        setState(() {
+          _trackerEnabled = false;
+        });
+      }
+    } else if (!currentlyEnabled && hasPermission == true && _trackerEnabled) {
+      await sl<NotificationSyncService>().setEnabled(true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Auto-Tracker activated successfully! 🎉'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showProminentDisclosure() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        final isLight = Theme.of(context).brightness == Brightness.light;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusLG),
+            side: BorderSide(
+              color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
+              width: AppSizes.borderThick,
+            ),
+          ),
+          backgroundColor: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
+          title: Text(
+            '🔒 Prominent Disclosure',
+            style: AppTextStyles.h2,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Fingo requires Notification Access to automatically track and log your transactions.',
+                style: AppTextStyles.labelMD,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '• ONLY reads transaction alerts from payment and bank apps (like Google Pay, PhonePe, and Paytm).\n'
+                '• Processed strictly locally in-memory on your device.\n'
+                '• We NEVER read, collect, or store private chats, SMS, emails, or personal data.',
+                style: AppTextStyles.bodySM,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _trackerEnabled = false;
+                });
+              },
+              child: Text(
+                'CANCEL',
+                style: AppTextStyles.labelMD.copyWith(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                setState(() {
+                  _trackerEnabled = true;
+                });
+                await NotificationsListener.openPermissionSettings();
+              },
+              child: Text(
+                'PROCEED',
+                style: AppTextStyles.labelMD.copyWith(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _toggleTracker(bool enabled) async {
+    if (enabled) {
+      final hasPermission = await NotificationsListener.hasPermission;
+      if (hasPermission == true) {
+        await sl<NotificationSyncService>().setEnabled(true);
+        setState(() {
+          _trackerEnabled = true;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Auto-Notification Tracker enabled! 🎉'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      } else {
+        _showProminentDisclosure();
+      }
+    } else {
+      await sl<NotificationSyncService>().setEnabled(false);
+      setState(() {
+        _trackerEnabled = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Auto-Notification Tracker disabled.')),
+        );
+      }
+    }
   }
 
   @override
@@ -182,6 +335,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
+
+                // Settings Section
+                Text("Settings", style: AppTextStyles.h2),
+                const SizedBox(height: 12),
+                AppCard(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Auto-Notification Expense Tracker',
+                              style: AppTextStyles.labelMD,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Instantly log transactions from Google Pay, PhonePe, Paytm, and bank notifications.',
+                              style: AppTextStyles.bodySM,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _trackerEnabled,
+                        activeThumbColor: AppColors.accent,
+                        onChanged: _toggleTracker,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
 
                 // Achievements section
                 Text("My Achievements", style: AppTextStyles.h2),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_it/get_it.dart';
 import '../../features/expenses/domain/entities/transaction_entity.dart';
 import '../../features/community/domain/entities/social_post_entity.dart';
 
@@ -120,22 +122,149 @@ class FingoState extends ChangeNotifier {
       xp -= targetXp;
       level++;
     }
+    _saveStats();
     notifyListeners();
   }
 
   /// Refill user lives/hearts
   void refillHearts() {
     hearts = maxHearts;
+    _saveStats();
     notifyListeners();
   }
 
   /// Increment streak counter
   void incrementStreak() {
     streak++;
+    _saveStats();
     notifyListeners();
   }
 
-  /// Add transaction and update daily quests
+  /// Helper to write user stats to secure storage
+  Future<void> _saveStats() async {
+    try {
+      final storage = GetIt.instance<FlutterSecureStorage>();
+      await storage.write(key: 'fingo_streak', value: streak.toString());
+      await storage.write(key: 'fingo_xp', value: xp.toString());
+      await storage.write(key: 'fingo_level', value: level.toString());
+      await storage.write(key: 'fingo_hearts', value: hearts.toString());
+      await storage.write(key: 'fingo_monthly_budget', value: monthlyBudget.toString());
+    } catch (_) {}
+  }
+
+  /// Helper to record completed quest ID to prevent repeated rewards
+  Future<void> _markQuestCompleted(String questId) async {
+    try {
+      final storage = GetIt.instance<FlutterSecureStorage>();
+      final completedStr = await storage.read(key: _keyCompletedQuests) ?? '';
+      final completedIds = completedStr.split(',').where((id) => id.isNotEmpty).toList();
+      if (!completedIds.contains(questId)) {
+        completedIds.add(questId);
+        await storage.write(key: _keyCompletedQuests, value: completedIds.join(','));
+      }
+    } catch (_) {}
+  }
+
+  static const String _keyCompletedQuests = 'fingo_completed_quests';
+  static const String _keyQuestsLastReset = 'fingo_quests_last_reset';
+
+  /// Asynchronously load stats from secure storage on startup
+  Future<void> loadStats() async {
+    try {
+      final storage = GetIt.instance<FlutterSecureStorage>();
+      final sStr = await storage.read(key: 'fingo_streak');
+      final xStr = await storage.read(key: 'fingo_xp');
+      final lStr = await storage.read(key: 'fingo_level');
+      final hStr = await storage.read(key: 'fingo_hearts');
+      final bStr = await storage.read(key: 'fingo_monthly_budget');
+
+      if (sStr != null) streak = int.tryParse(sStr) ?? streak;
+      if (xStr != null) xp = int.tryParse(xStr) ?? xp;
+      if (lStr != null) level = int.tryParse(lStr) ?? level;
+      if (hStr != null) hearts = int.tryParse(hStr) ?? hearts;
+      if (bStr != null) monthlyBudget = double.tryParse(bStr) ?? monthlyBudget;
+
+      // Quest Reset / Restoration Logic
+      final resetStr = await storage.read(key: _keyQuestsLastReset);
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      if (resetStr != todayStr) {
+        await storage.write(key: _keyQuestsLastReset, value: todayStr);
+        await storage.write(key: _keyCompletedQuests, value: '');
+      } else {
+        final completedStr = await storage.read(key: _keyCompletedQuests) ?? '';
+        final completedIds = completedStr.split(',').where((id) => id.isNotEmpty).toList();
+        for (final id in completedIds) {
+          final q = quests.firstWhere((quest) => quest.id == id, orElse: () => quests.first);
+          q.completed = true;
+          q.progress = q.target;
+        }
+      }
+
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  /// Syncs in-memory data and quests with the list of transactions fetched from Firestore.
+  void syncWithTransactions(List<TransactionEntity> newList) {
+    transactions = List.from(newList);
+
+    // 1. Calculate totalSpent dynamically based on current transactions
+    totalSpent = transactions
+        .where((t) => t.type == TransactionType.expense)
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    // 2. Update quests progress based on current transactions
+    final today = DateTime.now();
+
+    // Quest 1: First Save (Log your first transaction of the week)
+    final q1 = quests.firstWhere((q) => q.id == 'q1');
+    if (!q1.completed && transactions.isNotEmpty) {
+      q1.completed = true;
+      q1.progress = 1;
+      _markQuestCompleted('q1');
+      awardXP(q1.xpReward);
+    }
+
+    // Quest 2: Budget Guardian (Keep daily expenses under ₹1,000)
+    final q2 = quests.firstWhere((q) => q.id == 'q2');
+    final todaySpent = transactions
+        .where((t) =>
+            t.type == TransactionType.expense &&
+            t.date.year == today.year &&
+            t.date.month == today.month &&
+            t.date.day == today.day)
+        .fold(0.0, (sum, t) => sum + t.amount);
+    q2.progress = todaySpent.toInt();
+    if (q2.progress > q2.target && !q2.completed) {
+      // Deduct a heart once if over daily budget limit
+      q2.completed = true; // Mark as completed for the day to prevent repeated deduction
+      _markQuestCompleted('q2');
+      if (hearts > 0) {
+        hearts--;
+        _saveStats();
+      }
+    }
+
+    // Quest 3: Consistent Tracker (Log 3 transactions this week)
+    final q3 = quests.firstWhere((q) => q.id == 'q3');
+    if (!q3.completed) {
+      // Find transactions from the last 7 days
+      final thisWeekCount = transactions.where((t) {
+        final diff = today.difference(t.date).inDays;
+        return diff >= 0 && diff < 7;
+      }).length;
+      q3.progress = thisWeekCount;
+      if (q3.progress >= q3.target) {
+        q3.completed = true;
+        _markQuestCompleted('q3');
+        awardXP(q3.xpReward);
+      }
+    }
+
+    notifyListeners();
+  }
+
+  /// Add transaction locally (maintained for backward compatibility if needed)
   void addTransaction({
     required String title,
     required double amount,
@@ -164,45 +293,7 @@ class FingoState extends ChangeNotifier {
       processedForXp: false,
     );
     transactions.insert(0, newTx);
-
-    if (type == TransactionType.expense) {
-      totalSpent += amount;
-
-      // Update Budget Guardian Quest Progress (q2)
-      final q2 = quests.firstWhere((q) => q.id == 'q2');
-      final todaySpent = transactions
-          .where((t) =>
-              t.type == TransactionType.expense &&
-              t.date.year == DateTime.now().year &&
-              t.date.month == DateTime.now().month &&
-              t.date.day == DateTime.now().day)
-          .fold(0.0, (sum, t) => sum + t.amount);
-      q2.progress = todaySpent.toInt();
-      if (q2.progress > q2.target && !q2.completed) {
-        if (hearts > 0) hearts--;
-      }
-
-      // Update Scholar/Consistent Tracker Quest Progress (q3)
-      final q3 = quests.firstWhere((q) => q.id == 'q3');
-      if (!q3.completed) {
-        q3.progress++;
-        if (q3.progress >= q3.target) {
-          q3.completed = true;
-          awardXP(q3.xpReward);
-        }
-      }
-    }
-
-    // Update First Save Quest (q1)
-    final q1 = quests.firstWhere((q) => q.id == 'q1');
-    if (!q1.completed) {
-      q1.completed = true;
-      awardXP(q1.xpReward);
-    }
-
-    // Basic logging award
-    awardXP(5);
-    notifyListeners();
+    syncWithTransactions(transactions);
   }
 
   /// Complete or progress a quest and award XP
@@ -214,10 +305,12 @@ class FingoState extends ChangeNotifier {
       quest.progress++;
       if (quest.progress >= quest.target) {
         quest.completed = true;
+        _markQuestCompleted('q3');
         awardXP(quest.xpReward);
       }
     } else {
       quest.completed = true;
+      _markQuestCompleted(questId);
       awardXP(quest.xpReward);
     }
     notifyListeners();
@@ -259,6 +352,7 @@ class FingoState extends ChangeNotifier {
     monthlyBudget = 20000.0;
     totalSpent = 0.0;
     _initializeDefaults();
+    _saveStats();
     notifyListeners();
   }
 }
