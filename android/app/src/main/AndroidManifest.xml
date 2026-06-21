@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <application
         android:label="expense_tracker_app"
         android:name="${applicationName}"
@@ -30,6 +35,22 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <service 
+            android:name="im.zoe.labs.flutter_notification_listener.NotificationsHandlerService" 
+            android:label="Flutter Notifications Handler" 
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" 
+            android:exported="true" 
+            android:foregroundServiceType="specialUse">
+            
+            <property 
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" 
+                android:value="notification_listener"/>
+                
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

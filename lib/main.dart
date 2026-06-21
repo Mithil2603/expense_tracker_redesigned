@@ -6,10 +6,14 @@ void main() async {
   // Initialize service locator dependencies
   await init();
 
+  // Load persisted user stats
+  await sl<FingoState>().loadStats();
+
   // Safeguarded Firebase initialization
   try {
     await Firebase.initializeApp();
     AppLogger.i('Firebase has been successfully initialized.');
+    await sl<NotificationSyncService>().init();
   } catch (e, stackTrace) {
     AppLogger.w(
       'Firebase initialization bypassed. This is expected if Firebase '

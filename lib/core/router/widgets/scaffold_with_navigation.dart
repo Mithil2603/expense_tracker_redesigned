@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core.dart';
-import '../../../features/expenses/presentation/widgets/add_options_sheet.dart';
 
 class ScaffoldWithNavigation extends StatelessWidget {
   final Widget child;
@@ -118,7 +117,7 @@ class ScaffoldWithNavigation extends StatelessWidget {
                 Positioned(
                   top: -20,
                   child: App3DFAB(
-                    onTap: () => showAddOptionsBottomSheet(context),
+                    onTap: () => context.pushNamed(AppRoutes.addExpenseName),
                   ),
                 ),
               ],

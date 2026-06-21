@@ -5,8 +5,8 @@ import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
 import '../../features/community/presentation/pages/community_hub_screen.dart';
 import '../../features/analytics/presentation/pages/analytics_screen.dart';
 import '../../features/profile/presentation/pages/profile_screen.dart';
-import '../../features/expenses/presentation/pages/add_expense_screen.dart';
-import '../../features/expenses/presentation/pages/edit_expense_screen.dart';
+import '../../features/expenses/presentation/pages/transaction_form_screen.dart';
+import '../../features/expenses/domain/entities/transaction_entity.dart';
 import '../../features/auth/presentation/pages/auth_screen.dart';
 import 'widgets/scaffold_with_navigation.dart';
 import 'pages/route_error_screen.dart';
@@ -71,13 +71,16 @@ abstract final class AppRouter {
                 path: AppRoutes.addExpensePath,
                 name: AppRoutes.addExpenseName,
                 parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) => const AddExpenseScreen(),
+                builder: (context, state) => const TransactionFormScreen(),
               ),
               GoRoute(
                 path: AppRoutes.editExpensePath,
                 name: AppRoutes.editExpenseName,
                 parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) => const EditExpenseScreen(),
+                builder: (context, state) {
+                  final transaction = state.extra as TransactionEntity?;
+                  return TransactionFormScreen(transaction: transaction);
+                },
               ),
             ],
           ),

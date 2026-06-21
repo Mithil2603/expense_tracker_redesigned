@@ -48,6 +48,11 @@ abstract final class AppFormatters {
     return _timeFormat.format(date);
   }
 
+  /// Format Date & Time: 12 Jun 2026, 04:30 PM
+  static String formatDateTime(DateTime date) {
+    return '${formatDate(date)}, ${formatTime(date)}';
+  }
+
   /// Format Month & Year: June 2026
   static String formatMonthYear(DateTime date) {
     return _monthYearFormat.format(date);

@@ -5,4 +5,6 @@ export 'di/injection_container.dart';
 export 'core/core.dart';
 export 'features/expenses/domain/entities/transaction_entity.dart';
 export 'features/expenses/data/models/transaction_model.dart';
+export 'core/services/notification_sync_service.dart';
+
 

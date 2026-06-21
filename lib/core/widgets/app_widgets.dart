@@ -320,6 +320,9 @@ class AppButton extends StatelessWidget {
       width: expand ? double.infinity : null,
       height: AppSizes.buttonHeightLG,
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size(expand ? double.infinity : 0, AppSizes.buttonHeightLG),
+        ),
         onPressed: (enabled && !loading) ? onTap : null,
         child: loading
             ? const SizedBox.square(
@@ -369,6 +372,9 @@ class AppOutlineButton extends StatelessWidget {
       width: expand ? double.infinity : null,
       height: AppSizes.buttonHeightLG,
       child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          minimumSize: Size(expand ? double.infinity : 0, AppSizes.buttonHeightLG),
+        ),
         onPressed: (enabled && !loading) ? onTap : null,
         child: loading
             ? SizedBox.square(
