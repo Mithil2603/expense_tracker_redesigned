@@ -43,7 +43,8 @@ class SubscriptionRepository {
   /// Purchases a package
   Future<Either<Failure, CustomerInfo>> purchasePackage(Package package) async {
     try {
-      final purchaseResult = await Purchases.purchasePackage(package);
+      final purchaseParams = PurchaseParams.package(package);
+      final purchaseResult = await Purchases.purchase(purchaseParams);
       return Right(purchaseResult.customerInfo);
     } catch (e) {
       AppLogger.e('Error purchasing package: $e');

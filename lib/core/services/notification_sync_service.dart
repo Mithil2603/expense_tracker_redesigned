@@ -11,7 +11,6 @@ import '../utils/utils.dart';
 import 'entitlement/entitlement_service.dart';
 import 'entitlement/models/feature.dart';
 import 'entitlement/models/subscription_plan.dart';
-import '../utils/fingo_state.dart';
 
 /// Static background entry-point callback for NotificationsListener.
 /// Must be a top-level or static function annotated with @pragma('vm:entry-point').

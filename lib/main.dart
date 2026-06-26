@@ -1,5 +1,6 @@
 import 'fingo.dart';
 import 'core/services/remote_config_service.dart';
+import 'core/services/entitlement/entitlement_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
