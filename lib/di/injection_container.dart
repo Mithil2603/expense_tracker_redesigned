@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 
 import '../core/core.dart';
 import '../core/services/notification_sync_service.dart';
+import '../core/services/entitlement/entitlement_service.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/usecases/sign_in_with_email.dart';
@@ -38,6 +39,7 @@ Future<void> init() async {
   sl.registerLazySingleton<FingoState>(() => FingoState.instance);
   sl.registerLazySingleton<AuthNotifier>(() => AuthNotifier());
   sl.registerLazySingleton<NotificationSyncService>(() => NotificationSyncService());
+  sl.registerLazySingleton<EntitlementService>(() => EntitlementServiceImpl());
 
   // ─── Authentication Feature (Clean Architecture) ───────────────────────────
   // Repository

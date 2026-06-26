@@ -5,9 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../di/injection_container.dart';
-import '../../features/expenses/domain/entities/transaction_entity.dart';
 import '../../features/expenses/domain/repositories/transaction_repository.dart';
-import '../utils/sms_parser.dart';
+import 'detection/detection_pipeline.dart';
 import '../utils/utils.dart';
 
 /// Static background entry-point callback for NotificationsListener.
@@ -27,15 +26,6 @@ class NotificationSyncService {
 
   static const String _keyNotificationEnabled = 'notification_tracker_enabled';
 
-  // Allowed financial/messaging package names for strict security filtering
-  static const List<String> _allowedPackages = [
-    'com.google.android.apps.nbu.paisa.user', // Google Pay
-    'com.phonepe.app',                         // PhonePe
-    'net.one97.paytm',                         // Paytm
-    'com.google.android.apps.messaging',       // Google Messages (Default SMS app)
-    'com.android.mms',                         // Stock Messaging app
-    'com.samsung.android.messaging',           // Samsung Messages app
-  ];
 
   /// Check if the auto notification tracker is enabled by the user
   Future<bool> isEnabled() async {
@@ -123,57 +113,41 @@ class NotificationSyncService {
     final title = evt.title ?? '';
     final text = evt.text ?? '';
 
-    // 1. Strict Security Filter: Only process allowed packages
-    if (!_allowedPackages.contains(packageName.toLowerCase().trim())) {
-      return;
-    }
-
-    // 2. Parse locally in-memory
-    final parsed = SmsParser.parse(title, text);
-    if (parsed == null) return; // Skip if not a financial alert
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       AppLogger.w('Auto-logging skipped: No user authenticated.');
       return;
     }
 
-    // Generate deterministic document ID to prevent duplicate logs of same notification
-    final timestamp = DateTime.now();
-    final uniqueId = _generateUniqueDocId(packageName, parsed.amount, parsed.type, timestamp);
-
-    final transaction = TransactionEntity(
-      id: uniqueId,
+    // 1. Process via DetectionPipeline
+    final result = await DetectionPipeline.process(
+      packageName: packageName,
+      title: title,
+      body: text,
       userId: user.uid,
-      title: parsed.title,
-      amount: parsed.amount,
-      type: parsed.type,
-      expenseCategory: parsed.expenseCategory,
-      incomeCategory: parsed.incomeCategory,
-      date: timestamp,
-      paymentMethod: parsed.paymentMethod,
-      notes: 'Auto-logged from notification alert by ${title.toUpperCase()}',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      isRecurring: false,
-      processedForXp: false,
     );
+
+    if (result == null) return;
+    
+    if (result.isDuplicate) {
+      AppLogger.i('Auto-logging skipped: Duplicate transaction detected.');
+      return;
+    }
+
+    if (result.transaction == null) {
+      if (result.exclusionReason == null && result.confidence < DetectionPipeline.autoCreateThreshold) {
+         AppLogger.d('Auto-logging skipped: Low confidence (${result.confidence})');
+      }
+      return;
+    }
+
+    final transaction = result.transaction!;
 
     final repository = sl<TransactionRepository>();
-    final result = await repository.addTransaction(transaction, user.uid);
-    result.fold(
+    final dbResult = await repository.addTransaction(transaction, user.uid);
+    dbResult.fold(
       (failure) => AppLogger.e('Notification auto-logging failed: ${failure.message}'),
-      (_) => AppLogger.i('Successfully auto-logged notification transaction: ${parsed.title} - INR ${parsed.amount}'),
+      (_) => AppLogger.i('Successfully auto-logged notification transaction: ${transaction.title} - INR ${transaction.amount}'),
     );
-  }
-
-  /// Generate deterministic document ID based on transaction parameters to avoid duplicates
-  String _generateUniqueDocId(String packageName, double amount, TransactionType type, DateTime time) {
-    final cleanedPkg = packageName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_').toLowerCase();
-    // Round to nearest minute for deduplication (in case system notifies twice or delays)
-    final roundedTime = DateTime(time.year, time.month, time.day, time.hour, time.minute);
-    final timestamp = roundedTime.millisecondsSinceEpoch;
-    final amountStr = amount.toStringAsFixed(2).replaceAll('.', '_');
-    return 'notify_${cleanedPkg}_${type.name}_${amountStr}_$timestamp';
   }
 }

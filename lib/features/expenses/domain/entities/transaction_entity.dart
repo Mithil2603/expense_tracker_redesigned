@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../../../core/services/detection/models/detection_metadata.dart';
 /// Type of financial transaction.
 enum TransactionType { expense, income }
 
@@ -361,6 +361,7 @@ class TransactionEntity {
   final bool isRecurring;
   final String? recurringId;
   final bool processedForXp;
+  final DetectionMetadata? detectionMeta;
 
   const TransactionEntity({
     required this.id,
@@ -379,6 +380,7 @@ class TransactionEntity {
     this.isRecurring = false,
     this.recurringId,
     this.processedForXp = false,
+    this.detectionMeta,
   }) : assert(
           (type == TransactionType.expense && expenseCategory != null) ||
               (type == TransactionType.income && incomeCategory != null),

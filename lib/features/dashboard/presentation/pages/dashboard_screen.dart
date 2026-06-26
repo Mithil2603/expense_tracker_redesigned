@@ -7,6 +7,7 @@ import '../../../../features/expenses/domain/entities/transaction_entity.dart';
 import '../../../expenses/presentation/bloc/transaction_bloc.dart';
 import '../../../expenses/presentation/bloc/transaction_event.dart';
 import '../../../expenses/presentation/bloc/transaction_state.dart';
+import '../../../expenses/presentation/widgets/explainability_sheet.dart';
 
 /// DashboardScreen — Entry screen for the dashboard showing weekly transaction details.
 class DashboardScreen extends StatelessWidget {
@@ -313,9 +314,26 @@ class _DashboardViewState extends State<DashboardView> {
                                           size: 22,
                                         ),
                                       ),
-                                      title: Text(
-                                        tx.title,
-                                        style: AppTextStyles.labelMD,
+                                      title: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              tx.title,
+                                              style: AppTextStyles.labelMD,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (tx.detectionMeta != null) ...[
+                                            const SizedBox(width: 6),
+                                            GestureDetector(
+                                              onTap: () {
+                                                ExplainabilitySheet.show(context, tx);
+                                              },
+                                              child: const Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                       subtitle: Text(
                                         '${tx.categoryName} • ${AppFormatters.formatTime(tx.date)}',
