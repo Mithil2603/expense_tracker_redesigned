@@ -8,6 +8,7 @@ import '../../../expenses/presentation/bloc/transaction_bloc.dart';
 import '../../../expenses/presentation/bloc/transaction_event.dart';
 import '../../../expenses/presentation/bloc/transaction_state.dart';
 import '../../../expenses/presentation/widgets/explainability_sheet.dart';
+import '../widgets/pending_review_sheet.dart';
 
 /// DashboardScreen — Entry screen for the dashboard showing weekly transaction details.
 class DashboardScreen extends StatelessWidget {
@@ -153,13 +154,15 @@ class _DashboardViewState extends State<DashboardView> {
 
           final allTransactions = state is TransactionLoaded ? state.transactions : <TransactionEntity>[];
 
-          // Filter transactions belonging to selected week
+          // Filter transactions belonging to selected week (and not pending)
           final filteredTxs = allTransactions.where((tx) {
-            return tx.date.isAfter(
+            return !tx.isPending && tx.date.isAfter(
                   startOfWeek.subtract(const Duration(seconds: 1)),
                 ) &&
                 tx.date.isBefore(endOfWeek.add(const Duration(seconds: 1)));
           }).toList();
+
+          final pendingTxs = allTransactions.where((tx) => tx.isPending).toList();
 
           // Group transactions by date
           final groupedTxs = <String, List<TransactionEntity>>{};
@@ -240,6 +243,30 @@ class _DashboardViewState extends State<DashboardView> {
                   ],
                 ),
               ),
+              if (pendingTxs.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    PendingReviewSheet.show(context, pendingTxs);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                    color: AppColors.accent,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${pendingTxs.length} pending transaction${pendingTxs.length > 1 ? 's' : ''} to review',
+                            style: AppTextStyles.labelMD.copyWith(color: Colors.white),
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
               // Boundary outline divider
               Container(
                 color: isLight ? AppColors.outlineLight : AppColors.outlineDark,

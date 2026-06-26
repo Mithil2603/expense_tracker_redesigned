@@ -23,6 +23,7 @@ class TransactionModel extends TransactionEntity {
     super.recurringId,
     super.processedForXp = false,
     super.detectionMeta,
+    super.isPending = false,
   });
 
   /// Resolves the title from various legacy field names.
@@ -167,6 +168,7 @@ class TransactionModel extends TransactionEntity {
       recurringId: json['recurringId'] as String?,
       processedForXp: json['processedForXp'] as bool? ?? false,
       detectionMeta: detectionMeta,
+      isPending: json['isPending'] as bool? ?? false,
     );
   }
 
@@ -193,6 +195,7 @@ class TransactionModel extends TransactionEntity {
       'recurringId': recurringId,
       'processedForXp': processedForXp,
       if (detectionMeta != null) 'detectionMeta': detectionMeta!.toJson(),
+      'isPending': isPending,
     };
   }
 
@@ -216,6 +219,7 @@ class TransactionModel extends TransactionEntity {
       recurringId: entity.recurringId,
       processedForXp: entity.processedForXp,
       detectionMeta: entity.detectionMeta,
+      isPending: entity.isPending,
     );
   }
 }

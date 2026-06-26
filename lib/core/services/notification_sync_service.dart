@@ -8,6 +8,10 @@ import '../../di/injection_container.dart';
 import '../../features/expenses/domain/repositories/transaction_repository.dart';
 import 'detection/detection_pipeline.dart';
 import '../utils/utils.dart';
+import 'entitlement/entitlement_service.dart';
+import 'entitlement/models/feature.dart';
+import 'entitlement/models/subscription_plan.dart';
+import '../utils/fingo_state.dart';
 
 /// Static background entry-point callback for NotificationsListener.
 /// Must be a top-level or static function annotated with @pragma('vm:entry-point').
@@ -119,6 +123,23 @@ class NotificationSyncService {
       return;
     }
 
+    final entitlementService = sl<EntitlementService>();
+    final hasAccess = entitlementService.hasAccess(Feature.autoDetectionBasic);
+    if (!hasAccess) {
+      AppLogger.d('Auto-logging skipped: User does not have access to auto-detection.');
+      return;
+    }
+
+    final currentPlan = entitlementService.currentSubscription.plan;
+    final state = sl<FingoState>();
+
+    if (currentPlan == SubscriptionPlan.free) {
+      if (state.health <= 0) {
+        AppLogger.d('Auto-logging skipped: Free tier user has 0 health.');
+        return;
+      }
+    }
+
     // 1. Process via DetectionPipeline
     final result = await DetectionPipeline.process(
       packageName: packageName,
@@ -147,7 +168,13 @@ class NotificationSyncService {
     final dbResult = await repository.addTransaction(transaction, user.uid);
     dbResult.fold(
       (failure) => AppLogger.e('Notification auto-logging failed: ${failure.message}'),
-      (_) => AppLogger.i('Successfully auto-logged notification transaction: ${transaction.title} - INR ${transaction.amount}'),
+      (_) {
+        AppLogger.i('Successfully auto-logged notification transaction: ${transaction.title} - INR ${transaction.amount}');
+        // Deduct health for free users
+        if (currentPlan == SubscriptionPlan.free) {
+          state.deductHealth(5);
+        }
+      },
     );
   }
 }

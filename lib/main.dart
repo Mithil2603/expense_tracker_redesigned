@@ -1,4 +1,5 @@
 import 'fingo.dart';
+import 'core/services/remote_config_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,8 @@ void main() async {
   try {
     await Firebase.initializeApp();
     AppLogger.i('Firebase has been successfully initialized.');
+    await sl<EntitlementService>().init();
+    await sl<RemoteConfigService>().init();
     await sl<NotificationSyncService>().init();
   } catch (e, stackTrace) {
     AppLogger.w(

@@ -10,6 +10,7 @@ class ExplainabilitySheet extends StatelessWidget {
   static Future<void> show(BuildContext context, TransactionEntity transaction) {
     return showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => ExplainabilitySheet(transaction: transaction),

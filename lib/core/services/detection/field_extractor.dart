@@ -1,4 +1,5 @@
 import 'pattern_matcher.dart';
+import 'package:intl/intl.dart';
 
 class ExtractedFields {
   final double amount;
@@ -7,6 +8,7 @@ class ExtractedFields {
   final String? accountLast4;
   final String? referenceNumber;
   final String paymentMethod;
+  final DateTime? date;
 
   const ExtractedFields({
     required this.amount,
@@ -15,6 +17,7 @@ class ExtractedFields {
     this.accountLast4,
     this.referenceNumber,
     required this.paymentMethod,
+    this.date,
   });
 }
 
@@ -84,6 +87,44 @@ class FieldExtractor {
       referenceNumber = refMatch.namedGroup('ref');
     }
 
+    // Extract date universally
+    DateTime? date;
+    
+    // Pattern 1: DD-MMM-YYYY (e.g., 21-JUN-2026)
+    final dateRegex1 = RegExp(r'(?<day>\d{1,2})-(?<month>[a-zA-Z]{3})-(?<year>\d{4})');
+    final match1 = dateRegex1.firstMatch(normalizedText);
+    if (match1 != null) {
+      final d = match1.namedGroup('day');
+      final m = match1.namedGroup('month');
+      final y = match1.namedGroup('year');
+      if (d != null && m != null && y != null) {
+        try {
+          date = DateFormat('dd-MMM-yyyy').parse('$d-$m-$y');
+        } catch (_) {}
+      }
+    }
+    
+    // Pattern 2: DD/MM/YYYY
+    if (date == null) {
+      final dateRegex2 = RegExp(r'(?<day>\d{1,2})/(?<month>\d{1,2})/(?<year>\d{2,4})');
+      final match2 = dateRegex2.firstMatch(normalizedText);
+      if (match2 != null) {
+        final d = match2.namedGroup('day');
+        final m = match2.namedGroup('month');
+        final y = match2.namedGroup('year');
+        if (d != null && m != null && y != null) {
+          try {
+            final yStr = y.length == 2 ? '20$y' : y;
+            date = DateFormat('dd/MM/yyyy').parse('$d/$m/$yStr');
+          } catch (_) {}
+        }
+      }
+    }
+    
+    if (date == null && normalizedText.contains('today')) {
+      date = DateTime.now();
+    }
+
     return ExtractedFields(
       amount: amount,
       type: type,
@@ -91,6 +132,7 @@ class FieldExtractor {
       accountLast4: accountLast4,
       referenceNumber: referenceNumber,
       paymentMethod: paymentMethod,
+      date: date,
     );
   }
 }

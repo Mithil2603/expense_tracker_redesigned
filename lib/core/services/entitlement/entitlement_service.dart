@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'models/feature.dart';
 import 'models/subscription_entity.dart';
 import 'models/subscription_plan.dart';
+import 'package:get_it/get_it.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// The single source of truth for all feature gating and entitlement logic.
 /// Abstracts away the underlying billing provider (e.g. RevenueCat) from feature modules.
@@ -21,6 +23,12 @@ abstract class EntitlementService {
 
   /// Triggers a refresh of entitlements from the backend
   Future<void> refreshEntitlements();
+
+  /// Updates the current subscription manually
+  Future<void> updateSubscription(String userId, SubscriptionEntity entity);
+
+  /// Initializes the service and loads persisted subscription
+  Future<void> init();
 }
 
 class EntitlementServiceImpl implements EntitlementService {
@@ -30,12 +38,32 @@ class EntitlementServiceImpl implements EntitlementService {
   final _controller = StreamController<SubscriptionEntity>.broadcast();
   
   SubscriptionEntity _current = const SubscriptionEntity(
-    plan: SubscriptionPlan.free,
+    plan: SubscriptionPlan.free, // Default to free, init() will load from storage
     status: SubscriptionStatus.active,
   );
 
   EntitlementServiceImpl() {
     _controller.add(_current);
+  }
+
+  @override
+  Future<void> init() async {
+    try {
+      final storage = GetIt.instance<FlutterSecureStorage>();
+      final savedPlanStr = await storage.read(key: 'fingo_subscription_plan');
+      
+      if (savedPlanStr != null) {
+        final plan = SubscriptionPlan.values.firstWhere(
+          (e) => e.name == savedPlanStr,
+          orElse: () => SubscriptionPlan.free,
+        );
+        _current = SubscriptionEntity(
+          plan: plan,
+          status: SubscriptionStatus.active,
+        );
+        _controller.add(_current);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -79,10 +107,22 @@ class EntitlementServiceImpl implements EntitlementService {
     // _controller.add(_current);
   }
 
+  @override
+  Future<void> updateSubscription(String userId, SubscriptionEntity entity) async {
+    _current = entity;
+    _controller.add(_current);
+    
+    try {
+      final storage = GetIt.instance<FlutterSecureStorage>();
+      await storage.write(key: 'fingo_subscription_plan', value: entity.plan.name);
+    } catch (_) {}
+  }
+
   // Define feature gating mapping
   static const Set<Feature> _freeFeatures = {
     Feature.basicExpenseTracking,
     Feature.basicBudgets,
+    Feature.autoDetectionBasic, // Free users now have access, but gated by Gamification Health
   };
 
   static const Set<Feature> _plusFeatures = {

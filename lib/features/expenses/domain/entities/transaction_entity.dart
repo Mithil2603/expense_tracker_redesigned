@@ -362,6 +362,7 @@ class TransactionEntity {
   final String? recurringId;
   final bool processedForXp;
   final DetectionMetadata? detectionMeta;
+  final bool isPending;
 
   const TransactionEntity({
     required this.id,
@@ -381,6 +382,7 @@ class TransactionEntity {
     this.recurringId,
     this.processedForXp = false,
     this.detectionMeta,
+    this.isPending = false,
   }) : assert(
           (type == TransactionType.expense && expenseCategory != null) ||
               (type == TransactionType.income && incomeCategory != null),

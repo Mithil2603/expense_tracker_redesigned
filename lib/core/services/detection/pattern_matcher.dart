@@ -42,7 +42,7 @@ class PatternMatcher {
     // 2. Generic Fallback Regex if no template matched
     // Captures amounts near common transaction keywords
     final genericRegex = RegExp(
-      r'(?:debited|credited|spent|paid|received|deducted).*?(?:inr|rs|₹)?\s*(?<amount>[\d,]+(?:\.\d{1,2})?)|(?:inr|rs|₹)?\s*(?<amount2>[\d,]+(?:\.\d{1,2})?).*?(?:debited|credited|spent|paid|received|deducted)',
+      r'(?:debited|credited|spent|paid|received|deducted|dr|cr).*?(?:inr|rs|₹)?\s*(?<amount>[\d,]+(?:\.\d{1,2})?)|(?:inr|rs|₹)?\s*(?<amount2>[\d,]+(?:\.\d{1,2})?).*?(?:debited|credited|spent|paid|received|deducted|dr|cr)',
       caseSensitive: false,
     );
 
@@ -77,6 +77,18 @@ class PatternMatcher {
         extractionMap: {'amount': 'amount', 'merchant': 'merchant', 'accountLast4': 'acct'},
         paymentMethod: 'upi',
         confidenceBoost: 0.2,
+        version: 1,
+        enabled: true,
+      ),
+      DetectionPattern(
+        id: 'au_debit_upi_v1',
+        bank: 'AU Bank',
+        type: 'debit',
+        senderPatterns: ['AUBANK', 'AU Bank', 'AU SMALL', 'AU'],
+        regex: RegExp(r'dr\s*(?:inr|rs)?\s*(?<amount>[\d,]+(?:\.\d{1,2})?)\s*-\s*au\s*account\s*(?:x|ending)?\s*(?<acct>\d{4}).*?upi\/dr\/\d+\/(?<merchant>[^\/]+)', caseSensitive: false),
+        extractionMap: {'amount': 'amount', 'merchant': 'merchant', 'accountLast4': 'acct'},
+        paymentMethod: 'upi',
+        confidenceBoost: 0.3,
         version: 1,
         enabled: true,
       ),

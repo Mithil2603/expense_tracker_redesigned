@@ -13,8 +13,7 @@ class MappedCategory {
 }
 
 class CategoryMapper {
-  // Hardcoded for now. Will be moved to Remote Config in Phase 2.
-  static const Map<String, ExpenseCategory> _merchantExpenseMap = {
+  static Map<String, ExpenseCategory> _merchantExpenseMap = {
     'zomato': ExpenseCategory.foodAndDining,
     'swiggy': ExpenseCategory.foodAndDining,
     'uber': ExpenseCategory.transportation,
@@ -30,7 +29,7 @@ class CategoryMapper {
     'bpcl': ExpenseCategory.transportation,
   };
 
-  static const Map<String, ExpenseCategory> _keywordExpenseMap = {
+  static Map<String, ExpenseCategory> _keywordExpenseMap = {
     'rent': ExpenseCategory.housingAndRent,
     'electricity': ExpenseCategory.utilities,
     'recharge': ExpenseCategory.utilities,
@@ -39,13 +38,23 @@ class CategoryMapper {
     'emi': ExpenseCategory.financialServices,
   };
 
-  static const Map<String, IncomeCategory> _keywordIncomeMap = {
+  static Map<String, IncomeCategory> _keywordIncomeMap = {
     'salary': IncomeCategory.salary,
     'payroll': IncomeCategory.salary,
     'dividend': IncomeCategory.investments,
     'interest': IncomeCategory.investments,
     'refund': IncomeCategory.refundsAndCashbacks,
   };
+
+  static void updateMappings({
+    required Map<String, ExpenseCategory> merchantExpenseMap,
+    required Map<String, ExpenseCategory> keywordExpenseMap,
+    required Map<String, IncomeCategory> keywordIncomeMap,
+  }) {
+    _merchantExpenseMap = merchantExpenseMap;
+    _keywordExpenseMap = keywordExpenseMap;
+    _keywordIncomeMap = keywordIncomeMap;
+  }
 
   static MappedCategory mapCategory({
     required String type,

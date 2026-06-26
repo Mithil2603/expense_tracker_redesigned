@@ -121,12 +121,12 @@ class DetectionPipeline {
     final transaction = TransactionEntity(
       id: const Uuid().v4(),
       userId: userId,
-      title: extractedFields.merchant ?? 'Auto Transaction',
+      title: extractedFields.merchant ?? 'Unknown Merchant',
       amount: extractedFields.amount,
       type: extractedFields.type == 'expense' ? TransactionType.expense : TransactionType.income,
       expenseCategory: mappedCategory.expenseCategory,
       incomeCategory: mappedCategory.incomeCategory,
-      date: DateTime.now(),
+      date: extractedFields.date ?? DateTime.now(),
       paymentMethod: PaymentMethod.values.firstWhere(
         (e) => e.name == extractedFields.paymentMethod,
         orElse: () => PaymentMethod.other,
@@ -135,6 +135,7 @@ class DetectionPipeline {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       detectionMeta: metadata,
+      isPending: confidenceScore.score < autoCreateThreshold,
     );
 
     return DetectionResult(

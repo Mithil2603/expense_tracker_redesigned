@@ -1,0 +1,32 @@
+{
+  "merchantExpenseMap": {
+    "zomato": "foodAndDining",
+    "swiggy": "foodAndDining",
+    "uber": "transportation",
+    "ola": "transportation",
+    "rapido": "transportation",
+    "netflix": "subscriptions",
+    "spotify": "subscriptions",
+    "amazon": "shoppingAndFashion",
+    "flipkart": "shoppingAndFashion",
+    "apollo": "healthAndFitness",
+    "irctc": "travelAndVacation",
+    "hpcl": "transportation",
+    "bpcl": "transportation"
+  },
+  "keywordExpenseMap": {
+    "rent": "housingAndRent",
+    "electricity": "utilities",
+    "recharge": "utilities",
+    "bill": "utilities",
+    "loan": "financialServices",
+    "emi": "financialServices"
+  },
+  "keywordIncomeMap": {
+    "salary": "salary",
+    "payroll": "salary",
+    "dividend": "investments",
+    "interest": "investments",
+    "refund": "refundsAndCashbacks"
+  }
+}

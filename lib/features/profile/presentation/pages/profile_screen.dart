@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import '../../../../core/core.dart';
 import '../../../../core/services/notification_sync_service.dart';
+import '../../../../core/services/entitlement/entitlement_service.dart';
+import '../../../../core/services/entitlement/models/feature.dart';
 import '../../../../di/injection_container.dart';
 import 'package:expense_tracker_app/features/auth/domain/usecases/sign_out.dart';
 import '../widgets/subscription_plans_sheet.dart';
@@ -151,6 +153,14 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
 
   void _toggleTracker(bool enabled) async {
     if (enabled) {
+      final entitlementService = sl<EntitlementService>();
+      final hasAccess = entitlementService.hasAccess(Feature.autoDetectionBasic);
+      
+      if (!hasAccess) {
+        showSubscriptionPlansBottomSheet(context);
+        return;
+      }
+
       final hasPermission = await NotificationsListener.hasPermission;
       if (hasPermission == true) {
         await sl<NotificationSyncService>().setEnabled(true);

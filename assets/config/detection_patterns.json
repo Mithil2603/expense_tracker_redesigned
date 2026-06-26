@@ -1,0 +1,50 @@
+[
+  {
+    "id": "hdfc_debit_upi_v1",
+    "bank": "HDFC",
+    "type": "debit",
+    "senderPatterns": ["HDFCBK", "HDFC", "HDFCBANK"],
+    "regex": "(?:account|a\\/c)\\s*(?:xx|ending)?\\s*(?<acct>\\d{4})\\s*(?:debited|paid)\\s*(?:by)?\\s*(?:inr)?\\s*(?<amount>[\\d,]+(?:\\.\\d{1,2})?)\\s*(?:to|for|at)\\s*(?<merchant>[a-z0-9\\s\\.]+?)\\s*(?:on|ref|upi)",
+    "extractionMap": {
+      "amount": "amount",
+      "merchant": "merchant",
+      "accountLast4": "acct"
+    },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.2,
+    "version": 1,
+    "enabled": true
+  },
+  {
+    "id": "sbi_debit_upi_v1",
+    "bank": "SBI",
+    "type": "debit",
+    "senderPatterns": ["SBIUPI", "SBI", "STATEBANK"],
+    "regex": "debited\\s*(?:by)?\\s*(?:inr)?\\s*(?<amount>[\\d,]+(?:\\.\\d{1,2})?)\\s*from\\s*(?:a\\/c|account)\\s*(?<acct>\\d{4}).*?to\\s*(?<merchant>[a-z0-9\\s\\.]+?)\\s*(?:ref|upi)",
+    "extractionMap": {
+      "amount": "amount",
+      "merchant": "merchant",
+      "accountLast4": "acct"
+    },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.2,
+    "version": 1,
+    "enabled": true
+  },
+  {
+    "id": "au_debit_upi_v1",
+    "bank": "AU Bank",
+    "type": "debit",
+    "senderPatterns": ["AUBANK", "AU Bank", "AU SMALL", "AU"],
+    "regex": "dr\\s*(?:inr|rs)?\\s*(?<amount>[\\d,]+(?:\\.\\d{1,2})?)\\s*-\\s*au\\s*account\\s*(?:x|ending)?\\s*(?<acct>\\d{4}).*?upi\\/dr\\/\\d+\\/(?<merchant>[^\\/]+)",
+    "extractionMap": {
+      "amount": "amount",
+      "merchant": "merchant",
+      "accountLast4": "acct"
+    },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.3,
+    "version": 1,
+    "enabled": true
+  }
+]

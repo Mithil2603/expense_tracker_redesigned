@@ -1,5 +1,5 @@
 class ExclusionFilter {
-  static const List<String> otpPatterns = [
+  static List<String> otpPatterns = [
     'otp',
     'one time password',
     'one-time',
@@ -9,7 +9,7 @@ class ExclusionFilter {
     'your code',
   ];
 
-  static const List<String> promoPatterns = [
+  static List<String> promoPatterns = [
     'offer',
     'cashback upto',
     '% off',
@@ -30,7 +30,7 @@ class ExclusionFilter {
     'invite',
   ];
 
-  static const List<String> reminderPatterns = [
+  static List<String> reminderPatterns = [
     'bill due',
     'payment reminder',
     'emi due',
@@ -39,14 +39,14 @@ class ExclusionFilter {
     'upcoming payment',
   ];
 
-  static const List<String> deliveryPatterns = [
+  static List<String> deliveryPatterns = [
     'delivered',
     'shipped',
     'out for delivery',
     'tracking',
   ];
 
-  static const List<String> transactionVerbs = [
+  static List<String> transactionVerbs = [
     'debit',
     'credit',
     'paid',
@@ -54,7 +54,23 @@ class ExclusionFilter {
     'sent',
     'deducted',
     'spent',
+    'dr',
+    'cr',
   ];
+
+  static void updateRules({
+    required List<String> otpPatterns,
+    required List<String> promoPatterns,
+    required List<String> reminderPatterns,
+    required List<String> deliveryPatterns,
+    required List<String> transactionVerbs,
+  }) {
+    ExclusionFilter.otpPatterns = otpPatterns;
+    ExclusionFilter.promoPatterns = promoPatterns;
+    ExclusionFilter.reminderPatterns = reminderPatterns;
+    ExclusionFilter.deliveryPatterns = deliveryPatterns;
+    ExclusionFilter.transactionVerbs = transactionVerbs;
+  }
 
   /// Returns true if the text should be excluded from further processing.
   static bool shouldExclude(String normalizedText) {
