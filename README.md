@@ -1,4 +1,4 @@
-# expense_tracker_app
+# Fingo
 
 A new Flutter project.
 
