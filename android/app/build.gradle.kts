@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.expense_tracker_app"
+    namespace = "com.example.fingo"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

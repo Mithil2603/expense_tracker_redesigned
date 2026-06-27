@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:expense_tracker_app/core/utils/sms_parser.dart';
-import 'package:expense_tracker_app/features/expenses/domain/entities/transaction_entity.dart';
+import 'package:fingo/core/utils/sms_parser.dart';
+import 'package:fingo/features/expenses/domain/entities/transaction_entity.dart';
 
 void main() {
   group('SmsParser - Real Transaction Alert Parsing', () {

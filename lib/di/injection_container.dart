@@ -23,6 +23,10 @@ import '../features/expenses/domain/usecases/update_transaction.dart';
 import '../features/expenses/domain/usecases/delete_transaction.dart';
 import '../features/expenses/presentation/bloc/transaction_bloc.dart';
 
+import '../features/analytics/domain/usecases/generate_report.dart';
+import '../features/analytics/domain/usecases/generate_insights.dart';
+import '../features/analytics/presentation/bloc/report_bloc.dart';
+
 /// Global Service Locator instance
 final sl = GetIt.instance;
 
@@ -93,6 +97,20 @@ Future<void> init() async {
       addTransaction: sl(),
       updateTransaction: sl(),
       deleteTransaction: sl(),
+    ),
+  );
+
+  // ─── Analytics/Reports Feature (Clean Architecture) ────────────────────────
+  // Use Cases
+  sl.registerLazySingleton(() => GenerateReport());
+  sl.registerLazySingleton(() => GenerateInsights());
+
+  // BLoC
+  sl.registerFactory(
+    () => ReportBloc(
+      watchTransactions: sl(),
+      generateReport: sl(),
+      generateInsights: sl(),
     ),
   );
 }

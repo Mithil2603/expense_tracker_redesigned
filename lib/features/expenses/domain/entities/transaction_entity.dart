@@ -55,6 +55,7 @@ enum ExpenseCategory {
   utilities,
   foodAndDining,
   transportation,
+  fuel,
   healthAndFitness,
   shoppingAndFashion,
   entertainmentAndLeisure,
@@ -86,6 +87,8 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return 'Food & Dining';
       case ExpenseCategory.transportation:
         return 'Transportation';
+      case ExpenseCategory.fuel:
+        return 'Fuel & Gas';
       case ExpenseCategory.healthAndFitness:
         return 'Health & Fitness';
       case ExpenseCategory.shoppingAndFashion:
@@ -135,6 +138,8 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return Icons.fastfood_rounded;
       case ExpenseCategory.transportation:
         return Icons.directions_transit_rounded;
+      case ExpenseCategory.fuel:
+        return Icons.local_gas_station_rounded;
       case ExpenseCategory.healthAndFitness:
         return Icons.medical_services_rounded;
       case ExpenseCategory.shoppingAndFashion:
@@ -177,49 +182,51 @@ extension ExpenseCategoryExtension on ExpenseCategory {
   Color get color {
     switch (this) {
       case ExpenseCategory.housingAndRent:
-        return const Color(0xFFE74C3C);
+        return const Color(0xFFD32F2F); // Deep Red 700
       case ExpenseCategory.utilities:
-        return const Color(0xFF9B59B6);
+        return const Color(0xFFE64A19); // Deep Orange 700
       case ExpenseCategory.foodAndDining:
-        return const Color(0xFFFF6B6B);
+        return const Color(0xFFFF5252); // Red Accent
       case ExpenseCategory.transportation:
-        return const Color(0xFF2ECC71);
+        return const Color(0xFFC2185B); // Pink 700
+      case ExpenseCategory.fuel:
+        return const Color(0xFFD84315); // Deep Orange 800
       case ExpenseCategory.healthAndFitness:
-        return const Color(0xFF1ABC9C);
+        return const Color(0xFFF44336); // Red 500
       case ExpenseCategory.shoppingAndFashion:
-        return const Color(0xFF3498DB);
+        return const Color(0xFFE91E63); // Pink 500
       case ExpenseCategory.entertainmentAndLeisure:
-        return const Color(0xFFF1C40F);
+        return const Color(0xFFFF5722); // Deep Orange 500
       case ExpenseCategory.educationAndLearning:
-        return const Color(0xFFE67E22);
+        return const Color(0xFFFF8A65); // Deep Orange 300
       case ExpenseCategory.travelAndVacation:
-        return const Color(0xFF34495E);
+        return const Color(0xFFE57373); // Red 300
       case ExpenseCategory.personalCare:
-        return const Color(0xFFE91E63);
+        return const Color(0xFFF06292); // Pink 300
       case ExpenseCategory.familyAndKids:
-        return const Color(0xFF9C27B0);
+        return const Color(0xFFFF8A80); // Red Accent 100
       case ExpenseCategory.pets:
-        return const Color(0xFF8B4513);
+        return const Color(0xFFD84315); // Deep Orange 800 (reused)
       case ExpenseCategory.giftsAndDonations:
-        return const Color(0xFFF39C12);
+        return const Color(0xFFFF7043); // Deep Orange 400
       case ExpenseCategory.financialServices:
-        return const Color(0xFF7F8C8D);
+        return const Color(0xFFB71C1C); // Red 900
       case ExpenseCategory.businessAndWork:
-        return const Color(0xFF3F51B5);
+        return const Color(0xFF880E4F); // Pink 900
       case ExpenseCategory.subscriptions:
-        return const Color(0xFF16A085);
+        return const Color(0xFFFF1744); // Red Accent 400
       case ExpenseCategory.investmentsAndSavings:
-        return const Color(0xFF27AE60);
+        return const Color(0xFFF50057); // Pink Accent 400
       case ExpenseCategory.taxes:
-        return const Color(0xFFD35400);
+        return const Color(0xFFBF360C); // Deep Orange 900
       case ExpenseCategory.insurance:
-        return const Color(0xFF2980B9);
+        return const Color(0xFFAD1457); // Pink 800
       case ExpenseCategory.cryptoAndWeb3:
-        return const Color(0xFFF39C12);
+        return const Color(0xFFFF3D00); // Deep Orange Accent 400
       case ExpenseCategory.gamingAndDigital:
-        return const Color(0xFF8E44AD);
+        return const Color(0xFFFF6E40); // Deep Orange Accent 200
       case ExpenseCategory.other:
-        return const Color(0xFF95A5A6);
+        return const Color(0xFF757575); // Grey 600
     }
   }
 }
@@ -312,33 +319,33 @@ extension IncomeCategoryExtension on IncomeCategory {
   Color get color {
     switch (this) {
       case IncomeCategory.salary:
-        return const Color(0xFF2ECC71);
+        return const Color(0xFF2ECC71); // Emerald Green
       case IncomeCategory.freelance:
-        return const Color(0xFF1ABC9C);
+        return const Color(0xFF1ABC9C); // Teal
       case IncomeCategory.business:
-        return const Color(0xFF27AE60);
+        return const Color(0xFF27AE60); // Green
       case IncomeCategory.investments:
-        return const Color(0xFFF1C40F);
+        return const Color(0xFF16A085); // Dark Teal
       case IncomeCategory.sideHustle:
-        return const Color(0xFFE67E22);
+        return const Color(0xFF2E7D32); // Dark Green
       case IncomeCategory.rental:
-        return const Color(0xFF3498DB);
+        return const Color(0xFF009688); // Teal 500
       case IncomeCategory.giftsAndInheritance:
-        return const Color(0xFFE74C3C);
+        return const Color(0xFF4CAF50); // Green 500
       case IncomeCategory.refundsAndCashbacks:
-        return const Color(0xFF9B59B6);
+        return const Color(0xFF81C784); // Light Green
       case IncomeCategory.grantsAndScholarships:
-        return const Color(0xFF34495E);
+        return const Color(0xFF00695C); // Dark Teal 800
       case IncomeCategory.governmentBenefits:
-        return const Color(0xFF7F8C8D);
+        return const Color(0xFF1B5E20); // Forest Green
       case IncomeCategory.cryptoAndWeb3:
-        return const Color(0xFFF39C12);
+        return const Color(0xFF00E676); // Green Accent
       case IncomeCategory.contentCreation:
-        return const Color(0xFFE91E63);
+        return const Color(0xFF00BFA5); // Teal Accent
       case IncomeCategory.royalties:
-        return const Color(0xFF8E44AD);
+        return const Color(0xFF1DE9B6); // Teal Accent 400
       case IncomeCategory.other:
-        return const Color(0xFF95A5A6);
+        return const Color(0xFF80CBC4); // Teal 200
     }
   }
 }

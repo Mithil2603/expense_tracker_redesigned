@@ -3,7 +3,7 @@ import 'package:flutter_notification_listener/flutter_notification_listener.dart
 import '../../../../core/core.dart';
 import '../../../../core/services/notification_sync_service.dart';
 import '../../../../di/injection_container.dart';
-import 'package:expense_tracker_app/features/auth/domain/usecases/sign_out.dart';
+import 'package:fingo/features/auth/domain/usecases/sign_out.dart';
 import '../widgets/subscription_plans_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
