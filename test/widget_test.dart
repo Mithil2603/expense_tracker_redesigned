@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:expense_tracker_app/app.dart';
-import 'package:expense_tracker_app/core/core.dart';
-import 'package:expense_tracker_app/di/injection_container.dart' as di;
+import 'package:fingo/app.dart';
+import 'package:fingo/core/core.dart';
+import 'package:fingo/di/injection_container.dart' as di;
 import 'package:get_it/get_it.dart';
 
 import 'package:dartz/dartz.dart';
-import 'package:expense_tracker_app/features/expenses/domain/repositories/transaction_repository.dart';
-import 'package:expense_tracker_app/features/expenses/domain/entities/transaction_entity.dart';
+import 'package:fingo/features/expenses/domain/repositories/transaction_repository.dart';
+import 'package:fingo/features/expenses/domain/entities/transaction_entity.dart';
 
 class FakeTransactionRepository implements TransactionRepository {
   @override
