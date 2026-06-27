@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/core.dart';
+import '../../../../di/injection_container.dart';
+import '../../../../core/services/entitlement/entitlement_service.dart';
+import '../../../../core/services/entitlement/models/subscription_entity.dart';
+import '../../../../core/services/entitlement/models/subscription_plan.dart';
 
 void showSubscriptionPlansBottomSheet(BuildContext context) {
   int selectedPlanIdx = 1; // Default to Annual
@@ -97,11 +101,27 @@ void showSubscriptionPlansBottomSheet(BuildContext context) {
                     label: 'Start 7-Day Free Trial',
                     color: AppColors.accent,
                     shadowColor: AppColors.accentDark,
-                    onTap: () {
+                    onTap: () async {
                       Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Welcome to Fingo Super! 🚀')),
+                      
+                      // Mock a successful purchase by updating the entitlement
+                      final entitlementService = sl<EntitlementService>();
+                      await entitlementService.updateSubscription(
+                        'mock_user', 
+                        const SubscriptionEntity(
+                          plan: SubscriptionPlan.premium, 
+                          status: SubscriptionStatus.active
+                        )
                       );
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Welcome to Fingo Super! 🚀'),
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 12),

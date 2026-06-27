@@ -37,8 +37,8 @@ class FingoState extends ChangeNotifier {
   int streak = 0;
   int xp = 0;
   final int targetXp = 50;
-  int hearts = 5;
-  final int maxHearts = 5;
+  int health = 25;
+  final int maxHealth = 25;
   int level = 1;
   double monthlyBudget = 20000.0;
   double totalSpent = 0.0;
@@ -126,9 +126,17 @@ class FingoState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Refill user lives/hearts
-  void refillHearts() {
-    hearts = maxHearts;
+  /// Refill user health
+  void refillHealth() {
+    health = maxHealth;
+    _saveStats();
+    notifyListeners();
+  }
+
+  /// Deduct health
+  void deductHealth(int amount) {
+    health -= amount;
+    if (health < 0) health = 0;
     _saveStats();
     notifyListeners();
   }
@@ -147,7 +155,7 @@ class FingoState extends ChangeNotifier {
       await storage.write(key: 'fingo_streak', value: streak.toString());
       await storage.write(key: 'fingo_xp', value: xp.toString());
       await storage.write(key: 'fingo_level', value: level.toString());
-      await storage.write(key: 'fingo_hearts', value: hearts.toString());
+      await storage.write(key: 'fingo_health', value: health.toString());
       await storage.write(key: 'fingo_monthly_budget', value: monthlyBudget.toString());
     } catch (_) {}
   }
@@ -175,13 +183,13 @@ class FingoState extends ChangeNotifier {
       final sStr = await storage.read(key: 'fingo_streak');
       final xStr = await storage.read(key: 'fingo_xp');
       final lStr = await storage.read(key: 'fingo_level');
-      final hStr = await storage.read(key: 'fingo_hearts');
+      final hStr = await storage.read(key: 'fingo_health');
       final bStr = await storage.read(key: 'fingo_monthly_budget');
 
       if (sStr != null) streak = int.tryParse(sStr) ?? streak;
       if (xStr != null) xp = int.tryParse(xStr) ?? xp;
       if (lStr != null) level = int.tryParse(lStr) ?? level;
-      if (hStr != null) hearts = int.tryParse(hStr) ?? hearts;
+      if (hStr != null) health = int.tryParse(hStr) ?? health;
       if (bStr != null) monthlyBudget = double.tryParse(bStr) ?? monthlyBudget;
 
       // Quest Reset / Restoration Logic
@@ -236,11 +244,11 @@ class FingoState extends ChangeNotifier {
         .fold(0.0, (sum, t) => sum + t.amount);
     q2.progress = todaySpent.toInt();
     if (q2.progress > q2.target && !q2.completed) {
-      // Deduct a heart once if over daily budget limit
+      // Deduct health once if over daily budget limit
       q2.completed = true; // Mark as completed for the day to prevent repeated deduction
       _markQuestCompleted('q2');
-      if (hearts > 0) {
-        hearts--;
+      if (health > 0) {
+        health = (health - 5).clamp(0, maxHealth);
         _saveStats();
       }
     }
@@ -347,7 +355,7 @@ class FingoState extends ChangeNotifier {
   void reset() {
     streak = 0;
     xp = 0;
-    hearts = 5;
+    health = 25;
     level = 1;
     monthlyBudget = 20000.0;
     totalSpent = 0.0;

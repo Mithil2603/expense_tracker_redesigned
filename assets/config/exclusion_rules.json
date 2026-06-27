@@ -1,0 +1,56 @@
+{
+  "otpPatterns": [
+    "otp",
+    "one time password",
+    "one-time",
+    "do not share",
+    "verification code",
+    "code is",
+    "your code"
+  ],
+  "promoPatterns": [
+    "offer",
+    "cashback upto",
+    "% off",
+    "limited period",
+    "apply now",
+    "pre-approved",
+    "pre approved",
+    "eligible for",
+    "congratulations",
+    "avail",
+    "upgrade",
+    "claim",
+    "recharge now",
+    "subscribe to",
+    "win",
+    "bonus",
+    "referral",
+    "invite"
+  ],
+  "reminderPatterns": [
+    "bill due",
+    "payment reminder",
+    "emi due",
+    "due date",
+    "autopay scheduled",
+    "upcoming payment"
+  ],
+  "deliveryPatterns": [
+    "delivered",
+    "shipped",
+    "out for delivery",
+    "tracking"
+  ],
+  "transactionVerbs": [
+    "debit",
+    "credit",
+    "paid",
+    "received",
+    "sent",
+    "deducted",
+    "spent",
+    "dr",
+    "cr"
+  ]
+}

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../core/services/detection/models/detection_metadata.dart';
 import '../../domain/entities/transaction_entity.dart';
 
 /// Data Model representing the transaction representation at the API / database layer.
@@ -21,6 +22,8 @@ class TransactionModel extends TransactionEntity {
     super.isRecurring = false,
     super.recurringId,
     super.processedForXp = false,
+    super.detectionMeta,
+    super.isPending = false,
   });
 
   /// Resolves the title from various legacy field names.
@@ -141,6 +144,9 @@ class TransactionModel extends TransactionEntity {
       }
     }
 
+    final detectionMetaJson = json['detectionMeta'] as Map<String, dynamic>?;
+    final detectionMeta = detectionMetaJson != null ? DetectionMetadata.fromJson(detectionMetaJson) : null;
+
     return TransactionModel(
       id: json['id'] as String? ?? '',
       userId: json['userId'] as String? ?? '',
@@ -161,6 +167,8 @@ class TransactionModel extends TransactionEntity {
       isRecurring: json['isRecurring'] as bool? ?? false,
       recurringId: json['recurringId'] as String?,
       processedForXp: json['processedForXp'] as bool? ?? false,
+      detectionMeta: detectionMeta,
+      isPending: json['isPending'] as bool? ?? false,
     );
   }
 
@@ -186,6 +194,8 @@ class TransactionModel extends TransactionEntity {
       'isRecurring': isRecurring,
       'recurringId': recurringId,
       'processedForXp': processedForXp,
+      if (detectionMeta != null) 'detectionMeta': detectionMeta!.toJson(),
+      'isPending': isPending,
     };
   }
 
@@ -208,6 +218,8 @@ class TransactionModel extends TransactionEntity {
       isRecurring: entity.isRecurring,
       recurringId: entity.recurringId,
       processedForXp: entity.processedForXp,
+      detectionMeta: entity.detectionMeta,
+      isPending: entity.isPending,
     );
   }
 }

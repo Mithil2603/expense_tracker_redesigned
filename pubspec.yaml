@@ -51,6 +51,8 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   permission_handler: ^12.0.3
   flutter_notification_listener: ^1.4.0
+  purchases_flutter: ^10.3.0
+  firebase_remote_config: ^6.5.3
 
 dev_dependencies:
   flutter_test:
@@ -74,7 +76,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/
+    - assets/fingo_mascot.png
+    - assets/config/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

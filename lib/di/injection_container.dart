@@ -2,9 +2,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../core/core.dart';
 import '../core/services/notification_sync_service.dart';
+import '../core/services/entitlement/entitlement_service.dart';
+import '../core/services/remote_config_service.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/usecases/sign_in_with_email.dart';
@@ -28,6 +31,9 @@ import '../features/analytics/domain/usecases/generate_insights.dart';
 import '../features/analytics/presentation/bloc/report_bloc.dart';
 
 /// Global Service Locator instance
+import '../features/subscription/presentation/bloc/subscription_bloc.dart';
+import '../core/services/billing/subscription_repository.dart';
+
 final sl = GetIt.instance;
 
 /// Initialize and register all global dependencies
@@ -36,12 +42,27 @@ Future<void> init() async {
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
   sl.registerLazySingleton<FlutterSecureStorage>(() => const FlutterSecureStorage());
   sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
 
   // ─── Core / Network / Background Services ──────────────────────────────────
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-  sl.registerLazySingleton<FingoState>(() => FingoState.instance);
+  sl.registerLazySingleton<EntitlementService>(() => EntitlementServiceImpl());
+  sl.registerLazySingleton<SubscriptionRepository>(() => SubscriptionRepository());
+  sl.registerLazySingleton<RemoteConfigService>(() => RemoteConfigService());
+
+  // App State / Auth
   sl.registerLazySingleton<AuthNotifier>(() => AuthNotifier());
+  sl.registerLazySingleton<FingoState>(() => FingoState.instance);
   sl.registerLazySingleton<NotificationSyncService>(() => NotificationSyncService());
+
+  // BLoCs
+  sl.registerFactory<SubscriptionBloc>(
+    () => SubscriptionBloc(
+      repository: sl(),
+      entitlementService: sl(),
+      userId: sl<FirebaseAuth>().currentUser?.uid ?? '',
+    ),
+  );
 
   // ─── Authentication Feature (Clean Architecture) ───────────────────────────
   // Repository

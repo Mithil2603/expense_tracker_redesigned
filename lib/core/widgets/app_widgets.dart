@@ -1295,9 +1295,8 @@ class FingoGamifiedAppBar extends StatelessWidget
       title: ListenableBuilder(
         listenable: state,
         builder: (context, _) {
-          // Calculate health out of 30: 5 hearts maps to 30 health (1 heart = 6 health)
-          final currentHealth = state.hearts * 6;
-          final maxHealth = 30;
+          final currentHealth = state.health;
+          final maxHealth = state.maxHealth;
 
           return Padding(
             padding: const EdgeInsets.symmetric(
@@ -1363,7 +1362,7 @@ class FingoGamifiedAppBar extends StatelessWidget
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    state.refillHearts();
+                    state.refillHealth();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Health Refilled! ❤️')),
                     );
