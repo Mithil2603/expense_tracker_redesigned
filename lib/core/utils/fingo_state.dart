@@ -36,6 +36,7 @@ class FingoState extends ChangeNotifier {
   // User stats (Baseline clean state)
   int streak = 0;
   int xp = 0;
+  int diamonds = 0;
   final int targetXp = 50;
   int health = 25;
   final int maxHealth = 25;
@@ -78,41 +79,7 @@ class FingoState extends ChangeNotifier {
       ),
     ];
     transactions = [];
-    feedItems = [
-      SocialPostEntity(
-        userName: 'Sarah Jones',
-        avatar: '🥑',
-        content:
-            'Kept my daily food budget under ₹150 for 4 consecutive days! 🔥',
-        timeAgo: '15 mins ago',
-        isAchievement: true,
-        likes: 12,
-      ),
-      SocialPostEntity(
-        userName: 'Rahul Verma',
-        avatar: '💻',
-        content:
-            'Any tips to reduce high electricity utilities this summer? My bills are shooting up.',
-        timeAgo: '1 hr ago',
-        likes: 5,
-      ),
-      SocialPostEntity(
-        userName: 'Jessica Miller',
-        avatar: '🌟',
-        content: 'Levelled up to Level 2! Fingo rules! ⭐',
-        timeAgo: '3 hrs ago',
-        isAchievement: true,
-        likes: 24,
-      ),
-      SocialPostEntity(
-        userName: 'David Miller',
-        avatar: '🚗',
-        content: 'Saved ₹2,500 on transportation this week by carpooling! 💰🚘',
-        timeAgo: '5 hrs ago',
-        isAchievement: true,
-        likes: 18,
-      ),
-    ];
+    feedItems = []; // Feed items are now dynamically generated from milestones
   }
 
   /// Add XP and handle leveling up
@@ -126,9 +93,25 @@ class FingoState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Add Diamonds
+  void awardDiamonds(int amount) {
+    diamonds += amount;
+    _saveStats();
+    notifyListeners();
+  }
+
+  /// Deduct Diamonds
+  void deductDiamonds(int amount) {
+    diamonds -= amount;
+    if (diamonds < 0) diamonds = 0;
+    _saveStats();
+    notifyListeners();
+  }
+
   /// Refill user health
-  void refillHealth() {
-    health = maxHealth;
+  void refillHealth(int amount) {
+    health += amount;
+    if (health > maxHealth) health = maxHealth;
     _saveStats();
     notifyListeners();
   }
@@ -141,7 +124,7 @@ class FingoState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Increment streak counter
+  /// Increment streak counter directly
   void incrementStreak() {
     streak++;
     _saveStats();
@@ -154,6 +137,7 @@ class FingoState extends ChangeNotifier {
       final storage = GetIt.instance<FlutterSecureStorage>();
       await storage.write(key: 'fingo_streak', value: streak.toString());
       await storage.write(key: 'fingo_xp', value: xp.toString());
+      await storage.write(key: 'fingo_diamonds', value: diamonds.toString());
       await storage.write(key: 'fingo_level', value: level.toString());
       await storage.write(key: 'fingo_health', value: health.toString());
       await storage.write(key: 'fingo_monthly_budget', value: monthlyBudget.toString());
@@ -175,6 +159,7 @@ class FingoState extends ChangeNotifier {
 
   static const String _keyCompletedQuests = 'fingo_completed_quests';
   static const String _keyQuestsLastReset = 'fingo_quests_last_reset';
+  static const String _keyHealthLastReset = 'fingo_health_last_reset';
 
   /// Asynchronously load stats from secure storage on startup
   Future<void> loadStats() async {
@@ -182,19 +167,30 @@ class FingoState extends ChangeNotifier {
       final storage = GetIt.instance<FlutterSecureStorage>();
       final sStr = await storage.read(key: 'fingo_streak');
       final xStr = await storage.read(key: 'fingo_xp');
+      final dStr = await storage.read(key: 'fingo_diamonds');
       final lStr = await storage.read(key: 'fingo_level');
       final hStr = await storage.read(key: 'fingo_health');
       final bStr = await storage.read(key: 'fingo_monthly_budget');
 
       if (sStr != null) streak = int.tryParse(sStr) ?? streak;
       if (xStr != null) xp = int.tryParse(xStr) ?? xp;
+      if (dStr != null) diamonds = int.tryParse(dStr) ?? diamonds;
       if (lStr != null) level = int.tryParse(lStr) ?? level;
       if (hStr != null) health = int.tryParse(hStr) ?? health;
       if (bStr != null) monthlyBudget = double.tryParse(bStr) ?? monthlyBudget;
 
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      
+      // Daily Health Reset Logic
+      final hResetStr = await storage.read(key: _keyHealthLastReset);
+      if (hResetStr != todayStr) {
+        health = maxHealth;
+        await storage.write(key: _keyHealthLastReset, value: todayStr);
+        await _saveStats();
+      }
+
       // Quest Reset / Restoration Logic
       final resetStr = await storage.read(key: _keyQuestsLastReset);
-      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
       if (resetStr != todayStr) {
         await storage.write(key: _keyQuestsLastReset, value: todayStr);
         await storage.write(key: _keyCompletedQuests, value: '');
@@ -221,7 +217,13 @@ class FingoState extends ChangeNotifier {
         .where((t) => t.type == TransactionType.expense)
         .fold(0.0, (sum, t) => sum + t.amount);
 
-    // 2. Update quests progress based on current transactions
+    // 2. Rigorous Streak Calculation
+    _calculateStreakFromTransactions();
+
+    // 3. Generate Personal Milestone Feed
+    _generateMilestoneFeed();
+
+    // 4. Update quests progress based on current transactions
     final today = DateTime.now();
 
     // Quest 1: First Save (Log your first transaction of the week)
@@ -231,6 +233,7 @@ class FingoState extends ChangeNotifier {
       q1.progress = 1;
       _markQuestCompleted('q1');
       awardXP(q1.xpReward);
+      awardDiamonds(q1.xpReward); // Extra diamonds for quests
     }
 
     // Quest 2: Budget Guardian (Keep daily expenses under ₹1,000)
@@ -266,10 +269,93 @@ class FingoState extends ChangeNotifier {
         q3.completed = true;
         _markQuestCompleted('q3');
         awardXP(q3.xpReward);
+        awardDiamonds(q3.xpReward); // Extra diamonds for quests
       }
     }
 
     notifyListeners();
+  }
+
+  void _calculateStreakFromTransactions() {
+    if (transactions.isEmpty) {
+      streak = 0;
+      return;
+    }
+
+    // Extract unique dates (ignoring time) where user logged transactions
+    final activeDates = transactions.map((t) {
+      return DateTime(t.date.year, t.date.month, t.date.day);
+    }).toSet().toList();
+
+    // Sort descending (newest first)
+    activeDates.sort((a, b) => b.compareTo(a));
+
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final yesterdayDate = todayDate.subtract(const Duration(days: 1));
+
+    // If no transaction today or yesterday, streak is broken.
+    if (!activeDates.contains(todayDate) && !activeDates.contains(yesterdayDate)) {
+      streak = 0;
+      return;
+    }
+
+    int currentStreak = 0;
+    DateTime checkDate = activeDates.contains(todayDate) ? todayDate : yesterdayDate;
+
+    for (final date in activeDates) {
+      if (date.isAtSameMomentAs(checkDate)) {
+        currentStreak++;
+        checkDate = checkDate.subtract(const Duration(days: 1));
+      } else if (date.isBefore(checkDate)) {
+        break; // A gap found
+      }
+    }
+
+    streak = currentStreak;
+    _saveStats();
+  }
+
+  void _generateMilestoneFeed() {
+    final List<SocialPostEntity> newFeed = [];
+
+    if (transactions.isNotEmpty) {
+      newFeed.add(SocialPostEntity(
+        userName: 'Mithil (You)',
+        avatar: '🎉',
+        content: 'Logged my first transaction and started my financial journey!',
+        timeAgo: 'First Step',
+        isAchievement: true,
+        likes: 1,
+      ));
+    }
+
+    if (streak >= 3) {
+      newFeed.insert(0, SocialPostEntity(
+        userName: 'Mithil (You)',
+        avatar: '🔥',
+        content: 'Hit a $streak day tracking streak! Consistency is key.',
+        timeAgo: 'Recently',
+        isAchievement: true,
+        likes: 3,
+      ));
+    }
+
+    if (level >= 2) {
+      newFeed.insert(0, SocialPostEntity(
+        userName: 'Mithil (You)',
+        avatar: '⭐',
+        content: 'Reached Level $level! Levelling up my money habits.',
+        timeAgo: 'Recently',
+        isAchievement: true,
+        likes: 5,
+      ));
+    }
+
+    // Retain manually added posts if any (checking if we have user added posts)
+    final manualPosts = feedItems.where((post) => !post.isAchievement && post.userName == 'Mithil (You)').toList();
+    
+    feedItems = [...manualPosts, ...newFeed];
   }
 
   /// Add transaction locally (maintained for backward compatibility if needed)

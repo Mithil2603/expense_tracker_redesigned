@@ -79,8 +79,7 @@ class GenerateInsights {
     final timeline = _generateStoryTimeline(report, allTransactions);
 
     // 6. Predict Goal Completion (assuming a dynamic savings goal of 5x monthly budget)
-    final goalTarget = monthlyBudget * 5.0;
-    final goalPrediction = _predictGoal(report, goalTarget);
+    final goalPrediction = _generateGoalPrediction(report, allTransactions, monthlyBudget);
 
     final intelligence = FinancialIntelligence(
       healthScore: healthScore,
@@ -138,47 +137,37 @@ class GenerateInsights {
     List<TransactionEntity> allTransactions,
     double monthlyBudget,
   ) {
-    // 1. Calculate Period Duration & Normalized Budget
-    final durationInDays = report.endDate.difference(report.startDate).inDays.clamp(1, 365);
-    final periodBudget = monthlyBudget * (durationInDays / 30.437);
+    // 1. Ratio-Based Score Calculations (100 points total)
+    // We prioritize efficiency over raw amounts to prevent penalizing larger date ranges.
 
-    // 2. Ratio-Based Score Calculations
-    // Factor A: Savings Rate (max 30 points) -> Benchmark >= 30% savings rate gets full score
+    // Factor A: Savings Rate (max 40 points) -> Benchmark >= 20% gets full score
     double savingsRateScore = 0.0;
     if (report.savingsRate > 0) {
-      savingsRateScore = ((report.savingsRate / 30.0) * 30.0).clamp(0.0, 30.0);
+      savingsRateScore = ((report.savingsRate / 20.0) * 40.0).clamp(0.0, 40.0);
     }
 
-    // Factor B: Expense-to-Income Ratio (max 30 points) -> Benchmark <= 70% gets full score
-    double ratioScore = 30.0;
+    // Factor B: Expense-to-Income Ratio (max 40 points) -> Benchmark <= 70% gets full score
+    double ratioScore = 40.0;
     if (report.totalIncome > 0) {
       final ratio = report.totalExpense / report.totalIncome;
       if (ratio <= 0.70) {
-        ratioScore = 30.0;
+        ratioScore = 40.0;
       } else {
-        ratioScore = (30.0 - ((ratio - 0.70) / 0.30 * 30.0)).clamp(0.0, 30.0);
+        ratioScore = (40.0 - ((ratio - 0.70) / 0.30 * 40.0)).clamp(0.0, 40.0);
       }
+    } else if (report.totalExpense > 0) {
+      ratioScore = 0.0; // Expenses but no income = 0 points
     } else {
-      ratioScore = 15.0; // neutral fallback if no income logged
+      ratioScore = 20.0; // Neutral fallback
     }
 
-    // Factor C: Budget Adherence relative to the scaled period budget (max 30 points)
-    double budgetAdherenceScore = 30.0;
-    if (periodBudget > 0) {
-      if (report.totalExpense <= periodBudget) {
-        budgetAdherenceScore = 30.0;
-      } else {
-        final excess = report.totalExpense - periodBudget;
-        budgetAdherenceScore = (30.0 - (excess / periodBudget * 30.0)).clamp(0.0, 30.0);
-      }
-    }
+    // Factor C: Consistency of Savings (max 20 points)
+    // Reward users simply for having net positive savings in the current period.
+    double savingsConsistencyScore = report.netSavings > 0 ? 20.0 : 0.0;
 
-    // Factor D: Consistency of Savings (max 10 points)
-    double savingsConsistencyScore = report.netSavings > 0 ? 10.0 : 0.0;
+    int score = (savingsRateScore + ratioScore + savingsConsistencyScore).round().clamp(0, 100);
 
-    int score = (savingsRateScore + ratioScore + budgetAdherenceScore + savingsConsistencyScore).round().clamp(0, 100);
-
-    // 3. Normalized Score for Previous Period
+    // 2. Normalized Score for Previous Period
     final prevStart = report.startDate.subtract(report.endDate.difference(report.startDate));
     final prevEnd = report.startDate.subtract(const Duration(microseconds: 1));
 
@@ -196,37 +185,29 @@ class GenerateInsights {
       }
     }
     double prevSavings = prevIncome - prevExpense;
-    double prevSavingsRate = prevIncome > 0 ? (prevSavings / prevIncome * 100.0) : 0.0;
+    double prevSavingsRate = prevIncome > 0 ? ((prevSavings / prevIncome) * 100.0).clamp(0.0, 100.0) : 0.0;
 
     double prevSavingsRateScore = 0.0;
     if (prevSavingsRate > 0) {
-      prevSavingsRateScore = ((prevSavingsRate / 30.0) * 30.0).clamp(0.0, 30.0);
+      prevSavingsRateScore = ((prevSavingsRate / 20.0) * 40.0).clamp(0.0, 40.0);
     }
 
-    double prevRatioScore = 30.0;
+    double prevRatioScore = 40.0;
     if (prevIncome > 0) {
       final ratio = prevExpense / prevIncome;
       if (ratio <= 0.70) {
-        prevRatioScore = 30.0;
+        prevRatioScore = 40.0;
       } else {
-        prevRatioScore = (30.0 - ((ratio - 0.70) / 0.30 * 30.0)).clamp(0.0, 30.0);
+        prevRatioScore = (40.0 - ((ratio - 0.70) / 0.30 * 40.0)).clamp(0.0, 40.0);
       }
+    } else if (prevExpense > 0) {
+      prevRatioScore = 0.0;
     } else {
-      prevRatioScore = 15.0;
+      prevRatioScore = 20.0;
     }
 
-    double prevBudgetAdherenceScore = 30.0;
-    if (periodBudget > 0) {
-      if (prevExpense <= periodBudget) {
-        prevBudgetAdherenceScore = 30.0;
-      } else {
-        final excess = prevExpense - periodBudget;
-        prevBudgetAdherenceScore = (30.0 - (excess / periodBudget * 30.0)).clamp(0.0, 30.0);
-      }
-    }
-
-    double prevSavingsConsistencyScore = prevSavings > 0 ? 10.0 : 0.0;
-    int previousScore = (prevSavingsRateScore + prevRatioScore + prevBudgetAdherenceScore + prevSavingsConsistencyScore).round().clamp(0, 100);
+    double prevSavingsConsistencyScore = prevSavings > 0 ? 20.0 : 0.0;
+    int previousScore = (prevSavingsRateScore + prevRatioScore + prevSavingsConsistencyScore).round().clamp(0, 100);
 
     if (prevTransactions.isEmpty) {
       previousScore = 70; // Reasonable fallback default
@@ -252,14 +233,6 @@ class GenerateInsights {
       positiveReasons.add('Healthy savings rate of ${report.savingsRate.toStringAsFixed(0)}%');
     } else {
       negativeReasons.add('Low savings rate of ${report.savingsRate.toStringAsFixed(0)}% (aim for 20%+)');
-    }
-
-    if (periodBudget > 0) {
-      if (report.totalExpense <= periodBudget) {
-        positiveReasons.add('Kept total expenses within your scaled budget of ${periodBudget.toCurrency()}');
-      } else {
-        negativeReasons.add('Exceeded scaled budget limit by ${(report.totalExpense - periodBudget).toCurrency()}');
-      }
     }
 
     if (report.totalIncome > report.totalExpense) {
@@ -314,6 +287,16 @@ class GenerateInsights {
         prevCategoryExpenses[tx.expenseCategory!] = (prevCategoryExpenses[tx.expenseCategory!] ?? 0.0) + tx.amount;
       }
     }
+
+    final now = DateTime.now();
+    final currentMonthIncome = allTransactions
+        .where((tx) => tx.type == TransactionType.income && tx.date.year == now.year && tx.date.month == now.month)
+        .fold(0.0, (sum, tx) => sum + tx.amount);
+    final currentMonthExpense = allTransactions
+        .where((tx) => tx.type == TransactionType.expense && tx.date.year == now.year && tx.date.month == now.month)
+        .fold(0.0, (sum, tx) => sum + tx.amount);
+    
+    final realMonthlySavings = currentMonthIncome - currentMonthExpense;
 
     report.categoryExpenses.forEach((category, currentAmount) {
       final prevAmount = prevCategoryExpenses[category] ?? 0.0;
@@ -371,16 +354,9 @@ class GenerateInsights {
       }
 
       if (isLeak) {
-        double potentialMonthly = 0.0;
-        if (prevAmount > 0.0 && currentAmount > prevAmount) {
-          potentialMonthly = ((currentAmount - prevAmount) / months).clamp(
-            (monthlyAmount * 0.10),
-            (monthlyAmount * 0.50),
-          );
-        } else {
-          potentialMonthly = monthlyAmount * 0.25;
-        }
-
+        double potentialMonthly = realMonthlySavings > 0 
+            ? (monthlyAmount * 0.25).clamp(0.0, realMonthlySavings).toDouble()
+            : monthlyAmount * 0.25;
         final potentialAnnual = potentialMonthly * 12;
         final projectedYearly = currentAmount * (12.0 / months);
 
@@ -684,30 +660,33 @@ class GenerateInsights {
     return timeline;
   }
 
-  GoalPrediction _predictGoal(FinancialReport report, double target) {
+  GoalPrediction _generateGoalPrediction(FinancialReport report, List<TransactionEntity> allTransactions, double monthlyBudget) {
+    // Dynamically scale goal target based on report duration
+    final durationInDays = report.endDate.difference(report.startDate).inDays.clamp(1, 365);
+    final target = (monthlyBudget * 5.0) * (durationInDays / 30.437);
+    
     double progress = 0.0;
-    if (report.netSavings > 0) {
+    if (report.netSavings > 0 && target > 0) {
       progress = (report.netSavings / target * 100.0).clamp(0.0, 100.0);
     }
 
     DateTime? estCompletionDate;
-    String pace = 'Slow';
-    double recommended = 2000.0;
-    String suggestion = 'Try keeping daily expenses below ₹1,000 to save quicker.';
+    String pace = 'Not Started';
+    double recommended = 0.0;
+    String suggestion = 'Start logging income and minimizing expenses to track your progress.';
 
     if (report.netSavings > 0) {
-      progress = (report.netSavings / target * 100.0).clamp(0.0, 100.0);
-      
-      // Calculate months needed to reach target at current savings rate
-      final monthlyRate = report.netSavings;
-      final remaining = target - report.netSavings;
+      final monthlyRate = (report.netSavings / durationInDays) * 30.437;
+      final currentSavedAmount = report.netSavings; 
+      final remaining = target - currentSavedAmount;
+
       if (remaining > 0 && monthlyRate > 0) {
         final monthsNeeded = (remaining / monthlyRate).ceil();
         estCompletionDate = DateTime.now().add(Duration(days: monthsNeeded * 30));
         pace = monthsNeeded <= 3 ? 'Fast' : 'Moderate';
         recommended = (remaining / 3.0).clamp(1000.0, 10000.0);
         suggestion = 'Increase your savings by ₹${(recommended - monthlyRate).clamp(500.0, 5000.0).toStringAsFixed(0)} monthly to hit your goal 2 months early.';
-      } else {
+      } else if (remaining <= 0) {
         progress = 100.0;
         pace = 'Goal Reached!';
         suggestion = 'Congratulations! Set a higher budget target to earn bonus XP!';

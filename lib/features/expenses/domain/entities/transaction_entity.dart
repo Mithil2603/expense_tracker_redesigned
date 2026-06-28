@@ -73,6 +73,9 @@ enum ExpenseCategory {
   insurance,
   cryptoAndWeb3,
   gamingAndDigital,
+  groceries,
+  transferredToOthers,
+  hardwareRepair,
   other,
 }
 
@@ -123,6 +126,12 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return 'Crypto & Web3';
       case ExpenseCategory.gamingAndDigital:
         return 'Gaming & Digital';
+      case ExpenseCategory.groceries:
+        return 'Groceries';
+      case ExpenseCategory.transferredToOthers:
+        return 'Transferred to Others';
+      case ExpenseCategory.hardwareRepair:
+        return 'Hardware & Repair';
       case ExpenseCategory.other:
         return 'Other Expense';
     }
@@ -174,6 +183,12 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return Icons.currency_bitcoin_rounded;
       case ExpenseCategory.gamingAndDigital:
         return Icons.sports_esports_rounded;
+      case ExpenseCategory.groceries:
+        return Icons.shopping_basket_rounded;
+      case ExpenseCategory.transferredToOthers:
+        return Icons.send_rounded;
+      case ExpenseCategory.hardwareRepair:
+        return Icons.build_rounded;
       case ExpenseCategory.other:
         return Icons.widgets_rounded;
     }
@@ -225,6 +240,12 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return const Color(0xFFFF3D00); // Deep Orange Accent 400
       case ExpenseCategory.gamingAndDigital:
         return const Color(0xFFFF6E40); // Deep Orange Accent 200
+      case ExpenseCategory.groceries:
+        return const Color(0xFFE53935); // Red 600
+      case ExpenseCategory.transferredToOthers:
+        return const Color(0xFFC51162); // Pink Accent 700
+      case ExpenseCategory.hardwareRepair:
+        return const Color(0xFFBF360C); // Deep Orange 900
       case ExpenseCategory.other:
         return const Color(0xFF757575); // Grey 600
     }
@@ -421,5 +442,47 @@ class TransactionEntity {
     } else {
       return incomeCategory!.color;
     }
+  }
+
+  TransactionEntity copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    double? amount,
+    TransactionType? type,
+    ExpenseCategory? expenseCategory,
+    IncomeCategory? incomeCategory,
+    DateTime? date,
+    String? notes,
+    PaymentMethod? paymentMethod,
+    String? attachmentUrl,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isRecurring,
+    String? recurringId,
+    bool? processedForXp,
+    DetectionMetadata? detectionMeta,
+    bool? isPending,
+  }) {
+    return TransactionEntity(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      type: type ?? this.type,
+      expenseCategory: expenseCategory ?? this.expenseCategory,
+      incomeCategory: incomeCategory ?? this.incomeCategory,
+      date: date ?? this.date,
+      notes: notes ?? this.notes,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      attachmentUrl: attachmentUrl ?? this.attachmentUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isRecurring: isRecurring ?? this.isRecurring,
+      recurringId: recurringId ?? this.recurringId,
+      processedForXp: processedForXp ?? this.processedForXp,
+      detectionMeta: detectionMeta ?? this.detectionMeta,
+      isPending: isPending ?? this.isPending,
+    );
   }
 }

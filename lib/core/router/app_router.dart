@@ -10,6 +10,7 @@ import '../../features/expenses/domain/entities/transaction_entity.dart';
 import '../../features/auth/presentation/pages/auth_screen.dart';
 import 'widgets/scaffold_with_navigation.dart';
 import 'pages/route_error_screen.dart';
+import '../../features/gamification/presentation/pages/health_refill_screen.dart';
 
 import '../../di/injection_container.dart';
 
@@ -127,6 +128,12 @@ abstract final class AppRouter {
         path: AppRoutes.authPath,
         name: AppRoutes.authName,
         builder: (context, state) => const AuthScreen(),
+      ),
+      // ─── Standalone Gamification Routes ──────────────────────────────────────────────
+      GoRoute(
+        path: '/health-refill',
+        name: 'health-refill',
+        builder: (context, state) => const HealthRefillScreen(),
       ),
     ],
   );

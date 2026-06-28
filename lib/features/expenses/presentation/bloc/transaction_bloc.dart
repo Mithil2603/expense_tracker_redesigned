@@ -72,7 +72,17 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       result.fold(
         (failure) => emit(TransactionFailure(failure.message)),
         (_) {
-          // Do not emit a blank TransactionActionSuccess state.
+          // Increment Streak
+          sl<FingoState>().incrementStreak();
+          // Add Diamonds
+          sl<FingoState>().awardDiamonds(10);
+          
+          // Deduct Health: if the transaction is manual, deduct 1 health. 
+          // Auto transactions (with detectionMeta) are handled in NotificationSyncService.
+          if (event.transaction.detectionMeta == null) {
+            sl<FingoState>().deductHealth(1);
+          }
+          
           // The real-time stream subscription started by WatchTransactionsEvent
           // will automatically emit TransactionLoaded with the updated data.
         },
@@ -84,6 +94,9 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       result.fold(
         (failure) => emit(TransactionFailure(failure.message)),
         (_) {
+          // If a pending auto-transaction is approved (isPending becomes false)
+          // We can also reward the streak and diamonds here, if desired, but 
+          // the user mainly mentioned "every manual entry" and "auto transactions".
           // The real-time stream subscription automatically updates the list.
         },
       );

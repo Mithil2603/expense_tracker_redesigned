@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/theme.dart';
 import '../utils/fingo_state.dart';
 import '../../di/injection_container.dart';
@@ -1275,6 +1276,19 @@ class FingoGamifiedAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   const FingoGamifiedAppBar({super.key});
 
+  String _getAnimalTier(int level) {
+    if (level <= 3) return '🐜 Ant';
+    if (level <= 6) return '🐿️ Squirrel';
+    if (level <= 9) return '🦫 Beaver';
+    if (level <= 12) return '🦊 Fox';
+    if (level <= 15) return '🦉 Owl';
+    if (level <= 18) return '🐺 Wolf';
+    if (level <= 21) return '🦅 Eagle';
+    if (level <= 24) return '🦁 Lion';
+    if (level <= 27) return '🐘 Elephant';
+    return '🐉 Dragon';
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = sl<FingoState>();
@@ -1304,53 +1318,48 @@ class FingoGamifiedAppBar extends StatelessWidget
             ),
             child: Row(
               children: [
-                // FINGO Branding on left
-                Text(
-                  'FINGO',
-                  style: AppTextStyles.h2.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                  ),
+                // FINGO Branding and Animal League Badge on left
+                Row(
+                  children: [
+                    Text(
+                      'FINGO',
+                      style: AppTextStyles.h2.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSM),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        _getAnimalTier(state.level),
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const Spacer(),
 
-                // Daily Streak
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    state.incrementStreak();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Streak Incremented! 🔥')),
-                    );
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('🔥', style: TextStyle(fontSize: 18)),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${state.streak}',
-                        style: AppTextStyles.labelMD.copyWith(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
 
-                // XP Points
+                // Diamonds
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('⭐', style: TextStyle(fontSize: 16)),
+                    const Text('💎', style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 4),
                     Text(
-                      '${state.xp}',
+                      '${state.diamonds}',
                       style: AppTextStyles.labelMD.copyWith(
-                        color: AppColors.accent,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -1362,10 +1371,8 @@ class FingoGamifiedAppBar extends StatelessWidget
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    state.refillHealth();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Health Refilled! ❤️')),
-                    );
+                    // Navigate to health refill screen
+                    GoRouter.of(context).push('/health-refill');
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

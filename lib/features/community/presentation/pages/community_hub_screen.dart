@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fingo/features/gamification/domain/entities/animal_league.dart';
 import '../../../../core/core.dart';
 import '../../../../di/injection_container.dart';
 import '../../domain/entities/social_post_entity.dart';
+import '../../domain/entities/leaderboard_entry.dart';
+import '../../domain/repositories/leaderboard_repository.dart';
 import '../widgets/hub_tab_toggle.dart';
 
 class CommunityHubScreen extends StatefulWidget {
@@ -14,11 +17,26 @@ class CommunityHubScreen extends StatefulWidget {
 class _CommunityHubScreenState extends State<CommunityHubScreen> {
   int _selectedTab = 0; // 0 = Quests, 1 = Feed
   final TextEditingController _postCtrl = TextEditingController();
+  List<LeaderboardEntry>? _leaderboard;
+  bool _isLoadingLeaderboard = true;
 
   @override
   void initState() {
     super.initState();
     sl<FingoState>().addListener(_refresh);
+    _loadLeaderboard();
+  }
+
+  Future<void> _loadLeaderboard() async {
+    final repo = sl<LeaderboardRepository>();
+    final xp = sl<FingoState>().xp;
+    final entries = await repo.getLeaderboard(xp);
+    if (mounted) {
+      setState(() {
+        _leaderboard = entries;
+        _isLoadingLeaderboard = false;
+      });
+    }
   }
 
   @override
@@ -342,6 +360,81 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             },
           ),
           const SizedBox(height: 24),
+          // Duolingo-style horizontal league progression
+          SizedBox(
+            height: 85,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: AnimalLeague.values.length,
+              separatorBuilder: (context, idx) => const SizedBox(width: 8),
+              itemBuilder: (context, idx) {
+                final league = AnimalLeague.values[idx];
+                final currentLeague = LeagueUtils.getLeagueForLevel(state.level);
+                
+                final isFuture = idx > currentLeague.index;
+                final isCurrent = idx == currentLeague.index;
+                final isPast = idx < currentLeague.index;
+                
+                final Color borderColor;
+                final Color bgColor;
+                
+                if (isCurrent) {
+                  borderColor = AppColors.primary;
+                  bgColor = AppColors.primary.withValues(alpha: 0.15);
+                } else if (isPast) {
+                  borderColor = AppColors.primary.withValues(alpha: 0.4);
+                  bgColor = Colors.transparent;
+                } else {
+                  borderColor = isLight ? AppColors.outlineLight : AppColors.outlineDark;
+                  bgColor = isLight ? AppColors.surfaceLight : AppColors.surfaceDark;
+                }
+                
+                return Column(
+                  children: [
+                    Container(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: bgColor,
+                        border: Border.all(
+                          color: borderColor,
+                          width: isCurrent ? 2 : 1,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: isFuture
+                          ? Icon(
+                              Icons.lock_rounded, 
+                              color: isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark,
+                              size: 24,
+                            )
+                          : Opacity(
+                              opacity: isPast ? 0.6 : 1.0,
+                              child: Text(
+                                league.emoji,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                ),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isFuture ? 'Locked' : league.displayName,
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w600,
+                        color: isCurrent 
+                            ? AppColors.primary 
+                            : (isFuture ? AppColors.textSecondary : AppColors.textPrimary),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
           // Weekly Leaderboard Header
           Row(
             children: [
@@ -353,45 +446,39 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
           const SizedBox(height: 12),
           AppCard(
             padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildLeaderboardRow(
-                  1,
-                  '🥇 Sophia',
-                  '120 XP',
-                  isCurrentUser: false,
-                  isGold: true,
+            child: _isLoadingLeaderboard 
+              ? const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : Column(
+                  children: List.generate(_leaderboard!.length, (index) {
+                    final entry = _leaderboard![index];
+                    final isFirst = index == 0;
+                    final isSecond = index == 1;
+                    final isThird = index == 2;
+                    
+                    String medal = '';
+                    if (isFirst) medal = '🥇 ';
+                    if (isSecond) medal = '🥈 ';
+                    if (isThird) medal = '🥉 ';
+
+                    return Column(
+                      children: [
+                        if (index > 0) const AppDivider(indent: 16),
+                        _buildLeaderboardRow(
+                          index + 1,
+                          '$medal${entry.name}',
+                          '${entry.xp} XP',
+                          level: entry.level,
+                          isCurrentUser: entry.isCurrentUser,
+                          isGold: isFirst,
+                          isBot: entry.isBot,
+                        ),
+                      ],
+                    );
+                  }),
                 ),
-                const AppDivider(indent: 16),
-                _buildLeaderboardRow(
-                  2,
-                  '🥈 Liam',
-                  '80 XP',
-                  isCurrentUser: false,
-                ),
-                const AppDivider(indent: 16),
-                _buildLeaderboardRow(
-                  3,
-                  '🥉 Mithil (You)',
-                  '${state.xp} XP',
-                  isCurrentUser: true,
-                ),
-                const AppDivider(indent: 16),
-                _buildLeaderboardRow(
-                  4,
-                  'Dave',
-                  '20 XP',
-                  isCurrentUser: false,
-                ),
-                const AppDivider(indent: 16),
-                _buildLeaderboardRow(
-                  5,
-                  'Emma',
-                  '10 XP',
-                  isCurrentUser: false,
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -402,8 +489,10 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
     int rank,
     String name,
     String xpText, {
+    required int level,
     required bool isCurrentUser,
     bool isGold = false,
+    bool isBot = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -422,12 +511,19 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             ),
           ),
           Expanded(
-            child: Text(
-              name,
-              style: AppTextStyles.labelMD.copyWith(
-                fontWeight: isCurrentUser ? FontWeight.w900 : FontWeight.w700,
-                color: isCurrentUser ? AppColors.primary : null,
-              ),
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    '${LeagueUtils.getLeagueForLevel(level).emoji} $name',
+                    style: AppTextStyles.labelMD.copyWith(
+                      fontWeight: isCurrentUser ? FontWeight.w900 : FontWeight.w700,
+                      color: isCurrentUser ? AppColors.primary : null,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ),
           Text(

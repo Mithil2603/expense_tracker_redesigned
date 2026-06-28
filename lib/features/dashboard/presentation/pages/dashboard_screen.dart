@@ -8,7 +8,7 @@ import '../../../expenses/presentation/bloc/transaction_bloc.dart';
 import '../../../expenses/presentation/bloc/transaction_event.dart';
 import '../../../expenses/presentation/bloc/transaction_state.dart';
 import '../../../expenses/presentation/widgets/explainability_sheet.dart';
-import '../widgets/pending_review_sheet.dart';
+
 
 /// DashboardScreen — Entry screen for the dashboard showing weekly transaction details.
 class DashboardScreen extends StatelessWidget {
@@ -166,6 +166,11 @@ class _DashboardViewState extends State<DashboardView> {
 
           // Group transactions by date
           final groupedTxs = <String, List<TransactionEntity>>{};
+          
+          if (pendingTxs.isNotEmpty) {
+            groupedTxs['Pending Auto-Transactions'] = pendingTxs;
+          }
+
           for (final tx in filteredTxs) {
             final key = AppFormatters.formatRelativeDate(tx.date);
             if (!groupedTxs.containsKey(key)) {
@@ -243,30 +248,6 @@ class _DashboardViewState extends State<DashboardView> {
                   ],
                 ),
               ),
-              if (pendingTxs.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    PendingReviewSheet.show(context, pendingTxs);
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                    color: AppColors.accent,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline, color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '${pendingTxs.length} pending transaction${pendingTxs.length > 1 ? 's' : ''} to review',
-                            style: AppTextStyles.labelMD.copyWith(color: Colors.white),
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, color: Colors.white),
-                      ],
-                    ),
-                  ),
-                ),
               // Boundary outline divider
               Container(
                 color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
@@ -274,7 +255,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               // Expanded body region
               Expanded(
-                child: filteredTxs.isEmpty
+                child: groupedTxs.isEmpty
                     ? Center(
                         child: RefreshIndicator(
                           onRefresh: () async {
@@ -320,8 +301,9 @@ class _DashboardViewState extends State<DashboardView> {
                                     final tx = groupItems[idx];
                                     final catColor = tx.categoryColor;
                                     final isExpense = tx.type == TransactionType.expense;
+                                    final isPendingGroup = groupKey == 'Pending Auto-Transactions';
 
-                                    return ListTile(
+                                    final tile = ListTile(
                                       onTap: () {
                                         context.pushNamed(AppRoutes.editExpenseName, extra: tx);
                                       },
@@ -377,6 +359,43 @@ class _DashboardViewState extends State<DashboardView> {
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
+                                    );
+
+                                    if (!isPendingGroup) return tile;
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        tile,
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 16.0, bottom: 8.0, top: 4.0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              IconButton(
+                                                style: IconButton.styleFrom(
+                                                  backgroundColor: AppColors.error.withValues(alpha: 0.1),
+                                                ),
+                                                icon: const Icon(Icons.close, color: AppColors.error, size: 20),
+                                                onPressed: () {
+                                                  context.read<TransactionBloc>().add(DeleteTransactionEvent(tx.id, userId));
+                                                },
+                                              ),
+                                              const SizedBox(width: 12),
+                                              IconButton(
+                                                style: IconButton.styleFrom(
+                                                  backgroundColor: AppColors.success.withValues(alpha: 0.1),
+                                                ),
+                                                icon: const Icon(Icons.check, color: AppColors.success, size: 20),
+                                                onPressed: () {
+                                                  final updatedTx = tx.copyWith(isPending: false);
+                                                  context.read<TransactionBloc>().add(UpdateTransactionEvent(updatedTx, userId));
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     );
                                   },
                                 ),
