@@ -25,8 +25,13 @@ class CategoryMapper {
     'flipkart': ExpenseCategory.shoppingAndFashion,
     'apollo': ExpenseCategory.healthAndFitness,
     'irctc': ExpenseCategory.travelAndVacation,
-    'hpcl': ExpenseCategory.transportation,
-    'bpcl': ExpenseCategory.transportation,
+    'hpcl': ExpenseCategory.fuel,
+    'bpcl': ExpenseCategory.fuel,
+    'blinkit': ExpenseCategory.groceries,
+    'zepto': ExpenseCategory.groceries,
+    'instamart': ExpenseCategory.groceries,
+    'bigbasket': ExpenseCategory.groceries,
+    'dmart': ExpenseCategory.groceries,
   };
 
   static Map<String, ExpenseCategory> _keywordExpenseMap = {
@@ -36,6 +41,21 @@ class CategoryMapper {
     'bill': ExpenseCategory.utilities,
     'loan': ExpenseCategory.financialServices,
     'emi': ExpenseCategory.financialServices,
+    'grocery': ExpenseCategory.groceries,
+    'supermarket': ExpenseCategory.groceries,
+    'mart': ExpenseCategory.groceries,
+    'vegetables': ExpenseCategory.groceries,
+    'fruits': ExpenseCategory.groceries,
+    'sent to': ExpenseCategory.transferredToOthers,
+    'paid to': ExpenseCategory.transferredToOthers,
+    'transfer to': ExpenseCategory.transferredToOthers,
+    'upi transfer': ExpenseCategory.transferredToOthers,
+    'friend': ExpenseCategory.transferredToOthers,
+    'repair': ExpenseCategory.hardwareRepair,
+    'hardware': ExpenseCategory.hardwareRepair,
+    'service center': ExpenseCategory.hardwareRepair,
+    'mechanic': ExpenseCategory.hardwareRepair,
+    'fix': ExpenseCategory.hardwareRepair,
   };
 
   static Map<String, IncomeCategory> _keywordIncomeMap = {

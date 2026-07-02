@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fingo/features/gamification/domain/entities/animal_league.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import '../../../../core/core.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/services/notification_sync_service.dart';
 import '../../../../core/services/entitlement/entitlement_service.dart';
 import '../../../../core/services/entitlement/models/feature.dart';
@@ -266,11 +268,12 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                       child: AppCard(
                         child: Column(
                           children: [
-                            const Text('👑', style: TextStyle(fontSize: 24)),
+                            Text(LeagueUtils.getLeagueForLevel(state.level).emoji, style: const TextStyle(fontSize: 24)),
                             const SizedBox(height: 4),
                             Text(
-                              'Level ${state.level}',
+                              '${LeagueUtils.getLeagueForLevel(state.level).displayName} Tier (Lvl ${state.level})',
                               style: AppTextStyles.labelMD,
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
@@ -373,6 +376,42 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                         value: _trackerEnabled,
                         activeThumbColor: AppColors.accent,
                         onChanged: _toggleTracker,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                AppCard(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dark Mode',
+                              style: AppTextStyles.labelMD,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Toggle between light and dark themes.',
+                              style: AppTextStyles.bodySM,
+                            ),
+                          ],
+                        ),
+                      ),
+                      ListenableBuilder(
+                        listenable: sl<ThemeProvider>(),
+                        builder: (context, _) {
+                          return Switch(
+                            value: sl<ThemeProvider>().isDarkMode,
+                            activeThumbColor: AppColors.accent,
+                            onChanged: (val) {
+                              sl<ThemeProvider>().toggleTheme(val);
+                            },
+                          );
+                        },
                       ),
                     ],
                   ),

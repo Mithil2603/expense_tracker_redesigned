@@ -8,6 +8,7 @@ import '../core/core.dart';
 import '../core/services/notification_sync_service.dart';
 import '../core/services/entitlement/entitlement_service.dart';
 import '../core/services/remote_config_service.dart';
+import '../core/theme/theme_provider.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/usecases/sign_in_with_email.dart';
@@ -33,6 +34,9 @@ import '../features/analytics/presentation/bloc/report_bloc.dart';
 /// Global Service Locator instance
 import '../features/subscription/presentation/bloc/subscription_bloc.dart';
 import '../core/services/billing/subscription_repository.dart';
+import '../features/community/domain/repositories/leaderboard_repository.dart';
+import '../features/community/data/repositories/local_simulated_leaderboard_repository.dart';
+import '../features/gamification/presentation/controllers/finny_controller.dart';
 
 final sl = GetIt.instance;
 
@@ -54,6 +58,7 @@ Future<void> init() async {
   sl.registerLazySingleton<AuthNotifier>(() => AuthNotifier());
   sl.registerLazySingleton<FingoState>(() => FingoState.instance);
   sl.registerLazySingleton<NotificationSyncService>(() => NotificationSyncService());
+  sl.registerLazySingleton<ThemeProvider>(() => ThemeProvider(sl()));
 
   // BLoCs
   sl.registerFactory<SubscriptionBloc>(
@@ -133,5 +138,13 @@ Future<void> init() async {
       generateReport: sl(),
       generateInsights: sl(),
     ),
+  );
+
+  // ─── Gamification/Community Feature ──────────────────────────────────────
+  sl.registerLazySingleton<LeaderboardRepository>(
+    () => LocalSimulatedLeaderboardRepository(),
+  );
+  sl.registerLazySingleton<FinnyController>(
+    () => FinnyController(),
   );
 }
