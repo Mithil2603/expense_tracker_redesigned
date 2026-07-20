@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fingo/features/analytics/domain/entities/financial_report.dart';
+import 'package:fingo/features/analytics/domain/usecases/generate_report.dart';
 import 'package:fingo/features/analytics/domain/usecases/generate_insights.dart';
 import 'package:fingo/features/expenses/domain/entities/transaction_entity.dart';
 
 void main() {
-  final usecase = GenerateInsights();
+  final generateReport = GenerateReport();
+  final usecase = GenerateInsights(generateReport: generateReport);
 
   group('GenerateInsights Use Case Tests', () {
     test('Should calculate correct health score normalized for quarterly and yearly reports', () {
@@ -87,12 +89,14 @@ void main() {
         report: monthlyReport,
         allTransactions: monthlyReport.filteredTransactions,
         monthlyBudget: 9000.0,
+        currentDate: now,
       );
 
       final yearlyResult = usecase.call(
         report: yearlyReport,
         allTransactions: [],
         monthlyBudget: 9000.0,
+        currentDate: now,
       );
 
       // Health Score should remain highly similar across periods under normalized budgets
@@ -160,6 +164,7 @@ void main() {
         report: report,
         allTransactions: report.filteredTransactions,
         monthlyBudget: 6000.0,
+        currentDate: now,
       );
 
       final timeline = result.intelligence.timelineEvents;
@@ -234,6 +239,7 @@ void main() {
         report: currentReport,
         allTransactions: allTransactions,
         monthlyBudget: 5000.0,
+        currentDate: now,
       );
 
       final leaks = result.intelligence.moneyLeaks;

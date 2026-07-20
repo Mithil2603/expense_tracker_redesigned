@@ -80,11 +80,12 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         endDate: _currentEndDate,
       );
 
-      // 2. Generate Insights with optimized cache checks
+      // 2. Generate Insights cleanly without static caches, passing currentDate from Bloc
       final insightsResult = generateInsights(
         report: report,
         allTransactions: _allTransactions,
         monthlyBudget: monthlyBudget,
+        currentDate: DateTime.now(),
       );
 
       emit(ReportLoaded(

@@ -8,6 +8,7 @@ class FinancialInsight {
   final String message;
   final String finnyMessage;
   final int scoreImpact;
+  final double? amount;
 
   const FinancialInsight({
     required this.id,
@@ -17,5 +18,6 @@ class FinancialInsight {
     required this.message,
     required this.finnyMessage,
     required this.scoreImpact,
+    this.amount,
   });
 }

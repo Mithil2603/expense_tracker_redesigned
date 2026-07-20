@@ -129,7 +129,7 @@ Future<void> init() async {
   // ─── Analytics/Reports Feature (Clean Architecture) ────────────────────────
   // Use Cases
   sl.registerLazySingleton(() => GenerateReport());
-  sl.registerLazySingleton(() => GenerateInsights());
+  sl.registerLazySingleton(() => GenerateInsights(generateReport: sl()));
 
   // BLoC
   sl.registerFactory(

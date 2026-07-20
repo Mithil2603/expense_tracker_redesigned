@@ -3,29 +3,7 @@ import '../entities/financial_report.dart';
 import '../entities/financial_insight.dart';
 import '../entities/financial_intelligence.dart';
 import '../../../../core/utils/utils.dart'; // For AppLogger
-import '../../../../core/widgets/app_extensions.dart';
-
-class InsightsCache {
-  final DateTime startDate;
-  final DateTime endDate;
-  final double totalExpense;
-  final double totalIncome;
-  final double monthlyBudget;
-  final List<TransactionEntity> transactions;
-  final FinancialIntelligence intelligence;
-  final List<FinancialInsight> insights;
-
-  InsightsCache({
-    required this.startDate,
-    required this.endDate,
-    required this.totalExpense,
-    required this.totalIncome,
-    required this.monthlyBudget,
-    required this.transactions,
-    required this.intelligence,
-    required this.insights,
-  });
-}
+import 'generate_report.dart';
 
 class GenerateInsightsResult {
   final FinancialIntelligence intelligence;
@@ -38,48 +16,45 @@ class GenerateInsightsResult {
 }
 
 class GenerateInsights {
-  // Static cache to persist calculations across screen reopenings
-  static InsightsCache? _cache;
+  final GenerateReport generateReport;
+
+  GenerateInsights({required this.generateReport});
 
   GenerateInsightsResult call({
     required FinancialReport report,
     required List<TransactionEntity> allTransactions,
     required double monthlyBudget,
+    DateTime? currentDate,
   }) {
-    // Check if we can reuse the cached calculation
-    if (_cache != null &&
-        _cache!.startDate == report.startDate &&
-        _cache!.endDate == report.endDate &&
-        _cache!.totalExpense == report.totalExpense &&
-        _cache!.totalIncome == report.totalIncome &&
-        _cache!.monthlyBudget == monthlyBudget &&
-        _areTransactionsIdentical(_cache!.transactions, allTransactions)) {
-      AppLogger.i('⚡ [InsightsEngine] Returning cached financial intelligence and insights.');
-      return GenerateInsightsResult(
-        intelligence: _cache!.intelligence,
-        insights: _cache!.insights,
-      );
-    }
+    AppLogger.i('🧠 [InsightsEngine] Calculating financial intelligence and insights...');
+    final now = currentDate ?? DateTime.now();
 
-    AppLogger.i('🧠 [InsightsEngine] Recalculating financial intelligence and insights...');
+    // 1. Generate previous period report once using GenerateReport and reuse across methods
+    final prevStart = report.startDate.subtract(report.endDate.difference(report.startDate));
+    final prevEnd = report.startDate.subtract(const Duration(microseconds: 1));
+    final previousReport = generateReport(
+      transactions: allTransactions,
+      startDate: prevStart,
+      endDate: prevEnd,
+    );
 
-    // 1. Calculate Financial Health Score (0-100)
-    final healthScore = _calculateHealthScore(report, allTransactions, monthlyBudget);
+    // 2. Calculate Financial Health Score (0-100)
+    final healthScore = _calculateHealthScore(report, previousReport);
 
-    // 2. Identify Money Leaks
-    final leaks = _identifyMoneyLeaks(report, allTransactions);
+    // 3. Identify Money Leaks
+    final leaks = _identifyMoneyLeaks(report, previousReport, allTransactions, now);
 
-    // 3. Assign Financial Personality
+    // 4. Assign Financial Personality
     final personality = _determinePersonality(report);
 
-    // 4. Generate Weekly Review
-    final weeklyReview = _generateWeeklyReview(report, allTransactions);
+    // 5. Generate Weekly Review using GenerateReport
+    final weeklyReview = _generateWeeklyReview(report, allTransactions, now);
 
-    // 5. Generate Financial Story Timeline
-    final timeline = _generateStoryTimeline(report, allTransactions);
+    // 6. Generate Financial Story Timeline using previousReport
+    final timeline = _generateStoryTimeline(report, previousReport);
 
-    // 6. Predict Goal Completion (assuming a dynamic savings goal of 5x monthly budget)
-    final goalPrediction = _generateGoalPrediction(report, allTransactions, monthlyBudget);
+    // 7. Predict Goal Completion
+    final goalPrediction = _generateGoalPrediction(report, monthlyBudget, now);
 
     final intelligence = FinancialIntelligence(
       healthScore: healthScore,
@@ -90,20 +65,8 @@ class GenerateInsights {
       goalPrediction: goalPrediction,
     );
 
-    // 7. Generate Prioritized Insights List
-    final insights = _generatePrioritizedInsights(report, intelligence);
-
-    // Cache the fresh results
-    _cache = InsightsCache(
-      startDate: report.startDate,
-      endDate: report.endDate,
-      totalExpense: report.totalExpense,
-      totalIncome: report.totalIncome,
-      monthlyBudget: monthlyBudget,
-      transactions: List<TransactionEntity>.from(allTransactions),
-      intelligence: intelligence,
-      insights: insights,
-    );
+    // 8. Generate Prioritized Insights List
+    final insights = _generatePrioritizedInsights(report);
 
     return GenerateInsightsResult(
       intelligence: intelligence,
@@ -111,42 +74,16 @@ class GenerateInsights {
     );
   }
 
-  bool _areTransactionsIdentical(List<TransactionEntity> list1, List<TransactionEntity> list2) {
-    if (list1.length != list2.length) {
-      return false;
-    }
-    for (int i = 0; i < list1.length; i++) {
-      final t1 = list1[i];
-      final t2 = list2[i];
-      if (t1.id != t2.id ||
-          t1.amount != t2.amount ||
-          t1.type != t2.type ||
-          t1.date != t2.date ||
-          t1.expenseCategory != t2.expenseCategory ||
-          t1.incomeCategory != t2.incomeCategory ||
-          t1.title != t2.title ||
-          t1.updatedAt != t2.updatedAt) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   HealthScore _calculateHealthScore(
     FinancialReport report,
-    List<TransactionEntity> allTransactions,
-    double monthlyBudget,
+    FinancialReport previousReport,
   ) {
     // 1. Ratio-Based Score Calculations (100 points total)
-    // We prioritize efficiency over raw amounts to prevent penalizing larger date ranges.
-
-    // Factor A: Savings Rate (max 40 points) -> Benchmark >= 20% gets full score
     double savingsRateScore = 0.0;
     if (report.savingsRate > 0) {
       savingsRateScore = ((report.savingsRate / 20.0) * 40.0).clamp(0.0, 40.0);
     }
 
-    // Factor B: Expense-to-Income Ratio (max 40 points) -> Benchmark <= 70% gets full score
     double ratioScore = 40.0;
     if (report.totalIncome > 0) {
       final ratio = report.totalExpense / report.totalIncome;
@@ -156,36 +93,19 @@ class GenerateInsights {
         ratioScore = (40.0 - ((ratio - 0.70) / 0.30 * 40.0)).clamp(0.0, 40.0);
       }
     } else if (report.totalExpense > 0) {
-      ratioScore = 0.0; // Expenses but no income = 0 points
+      ratioScore = 0.0;
     } else {
-      ratioScore = 20.0; // Neutral fallback
+      ratioScore = 20.0;
     }
 
-    // Factor C: Consistency of Savings (max 20 points)
-    // Reward users simply for having net positive savings in the current period.
     double savingsConsistencyScore = report.netSavings > 0 ? 20.0 : 0.0;
-
     int score = (savingsRateScore + ratioScore + savingsConsistencyScore).round().clamp(0, 100);
 
-    // 2. Normalized Score for Previous Period
-    final prevStart = report.startDate.subtract(report.endDate.difference(report.startDate));
-    final prevEnd = report.startDate.subtract(const Duration(microseconds: 1));
-
-    final prevTransactions = allTransactions.where((t) =>
-        t.date.isAfter(prevStart.subtract(const Duration(microseconds: 1))) &&
-        t.date.isBefore(prevEnd.add(const Duration(microseconds: 1)))).toList();
-
-    double prevIncome = 0;
-    double prevExpense = 0;
-    for (final tx in prevTransactions) {
-      if (tx.type == TransactionType.income) {
-        prevIncome += tx.amount;
-      } else {
-        prevExpense += tx.amount;
-      }
-    }
-    double prevSavings = prevIncome - prevExpense;
-    double prevSavingsRate = prevIncome > 0 ? ((prevSavings / prevIncome) * 100.0).clamp(0.0, 100.0) : 0.0;
+    // 2. Normalized Score for Previous Period using previousReport
+    final prevIncome = previousReport.totalIncome;
+    final prevExpense = previousReport.totalExpense;
+    final prevSavings = previousReport.netSavings;
+    final prevSavingsRate = previousReport.savingsRate;
 
     double prevSavingsRateScore = 0.0;
     if (prevSavingsRate > 0) {
@@ -209,8 +129,8 @@ class GenerateInsights {
     double prevSavingsConsistencyScore = prevSavings > 0 ? 20.0 : 0.0;
     int previousScore = (prevSavingsRateScore + prevRatioScore + prevSavingsConsistencyScore).round().clamp(0, 100);
 
-    if (prevTransactions.isEmpty) {
-      previousScore = 70; // Reasonable fallback default
+    if (previousReport.filteredTransactions.isEmpty) {
+      previousScore = 70;
     }
 
     final delta = score - previousScore;
@@ -223,7 +143,7 @@ class GenerateInsights {
       explanation = 'Your financial discipline remains steady compared to the last period. Good work keeping your metrics stable!';
     }
 
-    // 4. Generate Explainability Reasons
+    // 3. Generate Explainability Reasons (without UI currency dependencies)
     final List<String> positiveReasons = [];
     final List<String> negativeReasons = [];
 
@@ -236,20 +156,13 @@ class GenerateInsights {
     }
 
     if (report.totalIncome > report.totalExpense) {
-      positiveReasons.add('Inflow exceeded outflows, generating a net savings surplus of ${report.netSavings.toCurrency()}');
+      positiveReasons.add('Inflow exceeded outflows, generating a net savings surplus');
     } else if (report.totalExpense > report.totalIncome) {
-      negativeReasons.add('Outflow exceeded inflows, generating a net deficit of ${report.netSavings.abs().toCurrency()}');
+      negativeReasons.add('Outflow exceeded inflows, generating a net deficit');
     }
 
-    // Category growth checks for explainability
-    final Map<ExpenseCategory, double> prevCategoryExpenses = {};
-    for (final tx in prevTransactions) {
-      if (tx.type == TransactionType.expense && tx.expenseCategory != null) {
-        prevCategoryExpenses[tx.expenseCategory!] = (prevCategoryExpenses[tx.expenseCategory!] ?? 0.0) + tx.amount;
-      }
-    }
     report.categoryExpenses.forEach((cat, amt) {
-      final prevAmt = prevCategoryExpenses[cat] ?? 0.0;
+      final prevAmt = previousReport.categoryExpenses[cat] ?? 0.0;
       if (prevAmt > 0 && amt > prevAmt * 1.25 && amt > (report.totalIncome * 0.03)) {
         final pctGrowth = ((amt - prevAmt) / prevAmt * 100).toStringAsFixed(0);
         negativeReasons.add('${cat.displayName} spending surged by $pctGrowth% compared to last period');
@@ -268,41 +181,25 @@ class GenerateInsights {
 
   List<MoneyLeak> _identifyMoneyLeaks(
     FinancialReport report,
+    FinancialReport previousReport,
     List<TransactionEntity> allTransactions,
+    DateTime now,
   ) {
     final List<MoneyLeak> leaks = [];
     final durationInDays = report.endDate.difference(report.startDate).inDays.clamp(1, 365);
     final double months = durationInDays / 30.437;
 
-    final prevStart = report.startDate.subtract(report.endDate.difference(report.startDate));
-    final prevEnd = report.startDate.subtract(const Duration(microseconds: 1));
-
-    final prevTransactions = allTransactions.where((t) =>
-        t.date.isAfter(prevStart.subtract(const Duration(microseconds: 1))) &&
-        t.date.isBefore(prevEnd.add(const Duration(microseconds: 1)))).toList();
-
-    final Map<ExpenseCategory, double> prevCategoryExpenses = {};
-    for (final tx in prevTransactions) {
-      if (tx.type == TransactionType.expense && tx.expenseCategory != null) {
-        prevCategoryExpenses[tx.expenseCategory!] = (prevCategoryExpenses[tx.expenseCategory!] ?? 0.0) + tx.amount;
-      }
-    }
-
-    final now = DateTime.now();
-    final currentMonthIncome = allTransactions
-        .where((tx) => tx.type == TransactionType.income && tx.date.year == now.year && tx.date.month == now.month)
-        .fold(0.0, (sum, tx) => sum + tx.amount);
-    final currentMonthExpense = allTransactions
-        .where((tx) => tx.type == TransactionType.expense && tx.date.year == now.year && tx.date.month == now.month)
-        .fold(0.0, (sum, tx) => sum + tx.amount);
-    
-    final realMonthlySavings = currentMonthIncome - currentMonthExpense;
+    final currentMonthReport = generateReport(
+      transactions: allTransactions,
+      startDate: DateTime(now.year, now.month, 1),
+      endDate: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
+    );
+    final realMonthlySavings = currentMonthReport.netSavings;
 
     report.categoryExpenses.forEach((category, currentAmount) {
-      final prevAmount = prevCategoryExpenses[category] ?? 0.0;
+      final prevAmount = previousReport.categoryExpenses[category] ?? 0.0;
       final monthlyAmount = currentAmount / months;
 
-      // 1. Evaluate Growth (Growth Rate) & Spending Acceleration
       double growthRate = 0.0;
       bool isUnusualGrowth = false;
       if (prevAmount > 0.0) {
@@ -312,11 +209,9 @@ class GenerateInsights {
         }
       }
 
-      // 2. Evaluate Dominance
       final dominanceRatio = report.totalExpense > 0 ? (currentAmount / report.totalExpense) : 0.0;
       final isDominant = dominanceRatio >= 0.20;
 
-      // 3. Evaluated relative to Income (Income Context Awareness & Affordability)
       final incomeRatio = report.totalIncome > 0 ? (currentAmount / report.totalIncome) : 0.0;
       String impactLevel = 'Low';
       if (incomeRatio >= 0.10) {
@@ -456,41 +351,33 @@ class GenerateInsights {
   WeeklyReview _generateWeeklyReview(
     FinancialReport report,
     List<TransactionEntity> allTransactions,
+    DateTime now,
   ) {
-    final now = DateTime.now();
     final oneWeekAgo = now.subtract(const Duration(days: 7));
+    final weeklyReport = generateReport(
+      transactions: allTransactions,
+      startDate: oneWeekAgo,
+      endDate: now,
+    );
 
-    final weeklyTxs = allTransactions.where((t) =>
-        t.date.isAfter(oneWeekAgo.subtract(const Duration(microseconds: 1))) &&
-        t.date.isBefore(now.add(const Duration(microseconds: 1)))).toList();
-
-    double income = 0;
-    double expenses = 0;
-    final Map<String, double> categorySums = {};
-
-    for (final tx in weeklyTxs) {
-      if (tx.type == TransactionType.income) {
-        income += tx.amount;
-      } else {
-        expenses += tx.amount;
-        final catName = tx.expenseCategory?.displayName ?? 'Other';
-        categorySums[catName] = (categorySums[catName] ?? 0.0) + tx.amount;
-      }
-    }
+    final income = weeklyReport.totalIncome;
+    final expenses = weeklyReport.totalExpense;
+    final savings = weeklyReport.netSavings;
 
     String highestCat = 'None';
     double maxSpent = 0;
     String lowestCat = 'None';
     double minSpent = double.infinity;
 
-    categorySums.forEach((cat, amt) {
+    weeklyReport.categoryExpenses.forEach((cat, amt) {
+      final catName = cat.displayName;
       if (amt > maxSpent) {
         maxSpent = amt;
-        highestCat = cat;
+        highestCat = catName;
       }
       if (amt < minSpent) {
         minSpent = amt;
-        lowestCat = cat;
+        lowestCat = catName;
       }
     });
 
@@ -498,19 +385,18 @@ class GenerateInsights {
       lowestCat = 'None';
     }
 
-    final savings = income - expenses;
-    final majorEvents = weeklyTxs
+    final majorEvents = weeklyReport.filteredTransactions
         .where((t) => t.type == TransactionType.expense && t.amount >= 2000.0)
-        .map((t) => '₹${t.amount.toStringAsFixed(0)} on ${t.title}')
+        .map((t) => '${t.amount} on ${t.title}')
         .toList();
 
     final delta = report.netSavings > 0 ? 5 : -2;
 
     String narrativeSummary;
     if (savings > 0) {
-      narrativeSummary = 'This week you saved ₹${savings.toStringAsFixed(0)}! Spending was kept under control, especially on $lowestCat.';
+      narrativeSummary = 'This week you saved more than you spent! Spending was kept under control, especially on $lowestCat.';
     } else if (expenses > 0) {
-      narrativeSummary = 'Your expenses exceeded income by ₹${savings.abs().toStringAsFixed(0)} this week. High spending was detected in $highestCat.';
+      narrativeSummary = 'Your expenses exceeded income this week. High spending was detected in $highestCat.';
     } else {
       narrativeSummary = 'No transactions recorded this week. Ready to log your first save?';
     }
@@ -529,7 +415,7 @@ class GenerateInsights {
 
   List<String> _generateStoryTimeline(
     FinancialReport report,
-    List<TransactionEntity> allTransactions,
+    FinancialReport previousReport,
   ) {
     if (report.filteredTransactions.isEmpty) {
       return ['Start of your logging timeline! Log your first transaction to compile your story.'];
@@ -537,7 +423,6 @@ class GenerateInsights {
 
     final List<String> timeline = [];
 
-    // Filter transactions
     final expenses = report.filteredTransactions
         .where((t) => t.type == TransactionType.expense)
         .toList()
@@ -548,23 +433,8 @@ class GenerateInsights {
         .toList()
       ..sort((a, b) => a.date.compareTo(b.date));
 
-    // Get previous period data for comparisons if possible
-    final prevStart = report.startDate.subtract(report.endDate.difference(report.startDate));
-    final prevEnd = report.startDate.subtract(const Duration(microseconds: 1));
-    final prevTransactions = allTransactions.where((t) =>
-        t.date.isAfter(prevStart.subtract(const Duration(microseconds: 1))) &&
-        t.date.isBefore(prevEnd.add(const Duration(microseconds: 1)))).toList();
-
-    final Map<ExpenseCategory, double> prevCategoryExpenses = {};
-    for (final tx in prevTransactions) {
-      if (tx.type == TransactionType.expense && tx.expenseCategory != null) {
-        prevCategoryExpenses[tx.expenseCategory!] = (prevCategoryExpenses[tx.expenseCategory!] ?? 0.0) + tx.amount;
-      }
-    }
-
     // 1. Spending Behavior Stories (Expenses)
     if (expenses.isNotEmpty && report.totalExpense > 0) {
-      // Dominant Category
       ExpenseCategory? maxCat;
       double maxVal = 0.0;
       report.categoryExpenses.forEach((cat, val) {
@@ -578,7 +448,6 @@ class GenerateInsights {
         timeline.add('${maxCat!.displayName} spending became the dominant expense category, accounting for $pct% of total outflows.');
       }
 
-      // Peak activity
       final Map<int, double> weeklySpent = {};
       for (final tx in expenses) {
         final day = tx.date.day;
@@ -594,13 +463,12 @@ class GenerateInsights {
         }
       });
       if (peakAmt > 0) {
-        timeline.add('Shopping and spending activity peaked during Week $peakWeek, with total expenses reaching ₹${peakAmt.toStringAsFixed(0)}.');
+        timeline.add('Shopping and spending activity peaked during Week $peakWeek.');
       }
 
-      // Declined category compared to previous
       ExpenseCategory? declinedCat;
       double maxDeclinePct = 0.0;
-      prevCategoryExpenses.forEach((cat, prevVal) {
+      previousReport.categoryExpenses.forEach((cat, prevVal) {
         final currVal = report.categoryExpenses[cat] ?? 0.0;
         if (prevVal > 0 && currVal < prevVal) {
           final declinePct = (prevVal - currVal) / prevVal;
@@ -623,7 +491,6 @@ class GenerateInsights {
 
     // 2. Income Behavior Stories (Incomes)
     if (incomes.isNotEmpty && report.totalIncome > 0) {
-      // Primary stream
       IncomeCategory? mainIncomeCat;
       double mainIncomeVal = 0.0;
       report.categoryIncomes.forEach((cat, val) {
@@ -638,7 +505,6 @@ class GenerateInsights {
         timeline.add('${mainIncomeCat!.displayName} remained the primary income stream, contributing $mainPct% of total inflows.');
       }
 
-      // Additional sources
       double secondaryIncomeVal = 0.0;
       report.categoryIncomes.forEach((cat, val) {
         if (cat != mainIncomeCat) {
@@ -660,8 +526,11 @@ class GenerateInsights {
     return timeline;
   }
 
-  GoalPrediction _generateGoalPrediction(FinancialReport report, List<TransactionEntity> allTransactions, double monthlyBudget) {
-    // Dynamically scale goal target based on report duration
+  GoalPrediction _generateGoalPrediction(
+    FinancialReport report,
+    double monthlyBudget,
+    DateTime now,
+  ) {
     final durationInDays = report.endDate.difference(report.startDate).inDays.clamp(1, 365);
     final target = (monthlyBudget * 5.0) * (durationInDays / 30.437);
     
@@ -682,10 +551,10 @@ class GenerateInsights {
 
       if (remaining > 0 && monthlyRate > 0) {
         final monthsNeeded = (remaining / monthlyRate).ceil();
-        estCompletionDate = DateTime.now().add(Duration(days: monthsNeeded * 30));
+        estCompletionDate = now.add(Duration(days: monthsNeeded * 30));
         pace = monthsNeeded <= 3 ? 'Fast' : 'Moderate';
         recommended = (remaining / 3.0).clamp(1000.0, 10000.0);
-        suggestion = 'Increase your savings by ₹${(recommended - monthlyRate).clamp(500.0, 5000.0).toStringAsFixed(0)} monthly to hit your goal 2 months early.';
+        suggestion = 'Increase your monthly savings contribution to hit your goal 2 months early.';
       } else if (remaining <= 0) {
         progress = 100.0;
         pace = 'Goal Reached!';
@@ -702,26 +571,22 @@ class GenerateInsights {
     );
   }
 
-  List<FinancialInsight> _generatePrioritizedInsights(
-    FinancialReport report,
-    FinancialIntelligence intel,
-  ) {
+  List<FinancialInsight> _generatePrioritizedInsights(FinancialReport report) {
     final List<FinancialInsight> list = [];
 
-    // 1. Check budget warning (Critical)
     if (report.totalExpense > report.totalIncome && report.totalIncome > 0) {
       list.add(FinancialInsight(
         id: 'i1',
         priority: InsightPriority.critical,
         category: 'Warning',
         title: 'Exceeding Income Limit',
-        message: 'Your expenses exceed your earnings this period by ₹${(report.totalExpense - report.totalIncome).toStringAsFixed(0)}.',
+        message: 'Your expenses exceed your earnings this period.',
         finnyMessage: 'Watch out! Spending more than you earn stalls your level progress. Let\'s cut non-essential shopping.',
         scoreImpact: -15,
+        amount: report.totalExpense - report.totalIncome,
       ));
     }
 
-    // 2. Check category warning (Important)
     final foodSpent = report.categoryExpenses[ExpenseCategory.foodAndDining] ?? 0.0;
     if (foodSpent > report.totalExpense * 0.35 && report.totalExpense > 0) {
       list.add(FinancialInsight(
@@ -730,12 +595,12 @@ class GenerateInsights {
         category: 'Category Analysis',
         title: 'High Food Expenses',
         message: 'Dining out and food orders account for ${(foodSpent / report.totalExpense * 100).toStringAsFixed(0)}% of your expenses.',
-        finnyMessage: 'Food deliveries are draining your budget! Try cooking at home to save up to ₹5,000 this month.',
+        finnyMessage: 'Food deliveries are draining your budget! Try cooking at home more often.',
         scoreImpact: -8,
+        amount: foodSpent,
       ));
     }
 
-    // 3. Positive savings rate (Positive)
     if (report.savingsRate >= 20.0) {
       list.add(FinancialInsight(
         id: 'i3',
@@ -745,23 +610,23 @@ class GenerateInsights {
         message: 'You saved ${report.savingsRate.toStringAsFixed(0)}% of your income this period.',
         finnyMessage: 'Fantastic job! You saved more than 20% of your earnings. Keep this streak going!',
         scoreImpact: 10,
+        amount: report.netSavings,
       ));
     }
 
-    // 4. Milestone savings (Achievement)
     if (report.netSavings >= 10000.0) {
       list.add(FinancialInsight(
         id: 'i4',
         priority: InsightPriority.achievement,
         category: 'Achievements',
         title: 'Gold Saver Milestone',
-        message: 'You have accumulated over ₹10,000 in net savings during this filter period.',
-        finnyMessage: 'Wow, you hit the ₹10k savings mark! You\'ve earned a virtual Golden Piggy bank badge!',
+        message: 'You have accumulated significant net savings during this filter period.',
+        finnyMessage: 'Wow, you hit a major savings milestone! You\'ve earned a virtual Golden Piggy bank badge!',
         scoreImpact: 15,
+        amount: report.netSavings,
       ));
     }
 
-    // Fallbacks to ensure we always have insights
     if (list.isEmpty) {
       list.add(FinancialInsight(
         id: 'i_fallback',
@@ -771,10 +636,10 @@ class GenerateInsights {
         message: 'You are logging transactions consistently to understand your cash flow.',
         finnyMessage: 'Excellent logging streak! Keep recording your logs daily to reveal customized leak insights.',
         scoreImpact: 5,
+        amount: null,
       ));
     }
 
-    // Sort by priority index: critical first, then important, then positive, then achievement
     list.sort((a, b) => a.priority.index.compareTo(b.priority.index));
 
     return list;
