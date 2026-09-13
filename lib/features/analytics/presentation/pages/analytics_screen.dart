@@ -11,6 +11,7 @@ import '../bloc/report_state.dart';
 import '../../domain/entities/financial_report.dart';
 import '../../domain/entities/financial_insight.dart';
 import '../../domain/entities/financial_intelligence.dart';
+import '../../../community/presentation/widgets/check_in_streak_card.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});
@@ -181,6 +182,13 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
                       // 3. Finny Mascot Speech Coaching Bubble
                       _buildFinnyCoachBubble(isLight, coachColor, coachBg, primaryInsight),
+                      const SizedBox(height: 20),
+
+                      // 3.5 Check-in Streak Display Card
+                      AnimatedBuilder(
+                        animation: sl<FingoState>(),
+                        builder: (context, _) => CheckInStreakCard(checkInStreak: sl<FingoState>().checkInStreak),
+                      ),
                       const SizedBox(height: 20),
 
                       // 4. Financial Health Score Circular Gauge

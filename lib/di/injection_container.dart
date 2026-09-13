@@ -8,6 +8,9 @@ import '../core/core.dart';
 import '../core/services/notification_sync_service.dart';
 import '../core/services/entitlement/entitlement_service.dart';
 import '../core/services/remote_config_service.dart';
+import '../core/services/quest/quest_firestore_service.dart';
+import '../core/services/quest/no_spend_streak_service.dart';
+import '../core/services/quest/quest_engine_service.dart';
 import '../core/theme/theme_provider.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
@@ -37,6 +40,10 @@ import '../core/services/billing/subscription_repository.dart';
 import '../features/community/domain/repositories/leaderboard_repository.dart';
 import '../features/community/data/repositories/local_simulated_leaderboard_repository.dart';
 import '../features/gamification/presentation/controllers/finny_controller.dart';
+import '../features/ipo/data/datasources/ipo_remote_data_source.dart';
+import '../features/ipo/data/repositories/ipo_repository_impl.dart';
+import '../features/ipo/domain/repositories/ipo_repository.dart';
+import '../features/ipo/presentation/bloc/ipo_hub_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -53,6 +60,12 @@ Future<void> init() async {
   sl.registerLazySingleton<EntitlementService>(() => EntitlementServiceImpl());
   sl.registerLazySingleton<SubscriptionRepository>(() => SubscriptionRepository());
   sl.registerLazySingleton<RemoteConfigService>(() => RemoteConfigService());
+  sl.registerLazySingleton<QuestFirestoreService>(() => QuestFirestoreService());
+  sl.registerLazySingleton<NoSpendStreakService>(() => NoSpendStreakService());
+  sl.registerLazySingleton<QuestEngineService>(() => QuestEngineService(
+        firestoreService: sl(),
+        streakService: sl(),
+      ));
 
   // App State / Auth
   sl.registerLazySingleton<AuthNotifier>(() => AuthNotifier());
@@ -146,5 +159,19 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<FinnyController>(
     () => FinnyController(),
+  );
+
+  // ─── IPO Capital Pool & ASBA Lifecycle Engine ───────────────────────────
+  sl.registerLazySingleton<IpoRemoteDataSource>(
+    () => IpoRemoteDataSourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<IpoRepository>(
+    () => IpoRepositoryImpl(
+      remoteDataSource: sl(),
+      transactionRepository: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => IpoHubBloc(ipoRepository: sl()),
   );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fingo/features/gamification/domain/entities/animal_league.dart';
 import 'package:flutter_notification_listener/flutter_notification_listener.dart';
 import '../../../../core/core.dart';
@@ -9,6 +10,8 @@ import '../../../../core/services/entitlement/models/feature.dart';
 import '../../../../di/injection_container.dart';
 import 'package:fingo/features/auth/domain/usecases/sign_out.dart';
 import '../widgets/subscription_plans_sheet.dart';
+import '../../../gamification/presentation/utils/finny_asset_resolver.dart';
+import '../../../../core/utils/background_file_logger.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -177,6 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
             ),
           );
         }
+        _checkBatteryOptimization();
       } else {
         _showProminentDisclosure();
       }
@@ -191,6 +195,158 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
         );
       }
     }
+  }
+
+  void _checkBatteryOptimization() async {
+    final syncService = sl<NotificationSyncService>();
+    final alreadyShown = await syncService.hasBatteryOptPromptBeenShown();
+    if (alreadyShown) return;
+    if (!mounted) return;
+
+    if (Theme.of(context).platform == TargetPlatform.android) {
+      const channel = MethodChannel('com.example.expense_tracker/device_info');
+      try {
+        final isIgnoring = await channel.invokeMethod<bool>('isIgnoringBatteryOptimizations') ?? false;
+        if (!isIgnoring && mounted) {
+          _showBatteryOptimizationDialog(channel, syncService);
+        } else {
+          await syncService.markBatteryOptPromptShown();
+        }
+      } catch (e) {
+        AppLogger.e('Error checking battery optimization: $e');
+      }
+    }
+  }
+
+  void _viewBackgroundLogs() async {
+    final logs = await BackgroundFileLogger.readLogs();
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isLight = Theme.of(context).brightness == Brightness.light;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusLG),
+            side: BorderSide(
+              color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
+              width: AppSizes.borderThick,
+            ),
+          ),
+          backgroundColor: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
+          title: Text('Background Debug Logs', style: AppTextStyles.h2),
+          content: Container(
+            width: double.maxFinite,
+            constraints: const BoxConstraints(maxHeight: 400),
+            child: SingleChildScrollView(
+              child: SelectableText(
+                logs,
+                style: AppTextStyles.bodySM.copyWith(fontFamily: 'monospace'),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                await BackgroundFileLogger.clearLogs();
+                navigator.pop();
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Logs cleared.')),
+                );
+              },
+              child: const Text('CLEAR LOGS', style: TextStyle(color: AppColors.error)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('CLOSE'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showBatteryOptimizationDialog(MethodChannel channel, NotificationSyncService syncService) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        final isLight = Theme.of(context).brightness == Brightness.light;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusLG),
+            side: BorderSide(
+              color: isLight ? AppColors.outlineLight : AppColors.outlineDark,
+              width: AppSizes.borderThick,
+            ),
+          ),
+          backgroundColor: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
+          title: Row(
+            children: [
+              FinnyAssetResolver.resolve(FinnyEmotion.excited, size: 40),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Optimize Background Sync',
+                  style: AppTextStyles.h2,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Fingo runs in the background to automatically detect transaction alerts. Android\'s battery optimization may kill this process.',
+                style: AppTextStyles.bodySM,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Please choose "Don\'t Optimize" or "Unrestricted" in the next screen to keep auto-detection working reliably.',
+                style: AppTextStyles.bodySM.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await syncService.markBatteryOptPromptShown();
+              },
+              child: Text(
+                'LATER',
+                style: AppTextStyles.labelMD.copyWith(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await syncService.markBatteryOptPromptShown();
+                try {
+                  await channel.invokeMethod('requestIgnoreBatteryOptimizations');
+                } catch (e) {
+                  AppLogger.e('Failed to request ignore battery optimization: $e');
+                }
+              },
+              child: Text(
+                'PROCEED',
+                style: AppTextStyles.labelMD.copyWith(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -412,6 +568,43 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                             },
                           );
                         },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                AppCard(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Background Logs',
+                              style: AppTextStyles.labelMD,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'View local debug log for background notifications.',
+                              style: AppTextStyles.bodySM,
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                          ),
+                        ),
+                        onPressed: _viewBackgroundLogs,
+                        child: Text(
+                          'VIEW',
+                          style: AppTextStyles.labelMD.copyWith(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),

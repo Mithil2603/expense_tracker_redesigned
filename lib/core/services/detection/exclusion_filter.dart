@@ -2,15 +2,15 @@ class ExclusionFilter {
   static List<String> otpPatterns = [
     'otp',
     'one time password',
-    'one-time',
+    'one-time password',
     'do not share',
     'verification code',
     'code is',
     'your code',
+    'passcode',
   ];
 
   static List<String> promoPatterns = [
-    'offer',
     'cashback upto',
     '% off',
     'limited period',
@@ -18,16 +18,16 @@ class ExclusionFilter {
     'pre-approved',
     'pre approved',
     'eligible for',
-    'congratulations',
-    'avail',
-    'upgrade',
-    'claim',
+    'avail now',
+    'upgrade your',
+    'claim your',
     'recharge now',
     'subscribe to',
-    'win',
-    'bonus',
-    'referral',
-    'invite',
+    'win up to',
+    'referral code',
+    'invite friends',
+    'special offer',
+    'exclusive offer',
   ];
 
   static List<String> reminderPatterns = [
@@ -37,25 +37,32 @@ class ExclusionFilter {
     'due date',
     'autopay scheduled',
     'upcoming payment',
+    'minimum due',
+    'total due',
+    'last date',
+    'pay now to avoid',
   ];
 
   static List<String> deliveryPatterns = [
-    'delivered',
-    'shipped',
     'out for delivery',
-    'tracking',
+    'order shipped',
+    'order delivered',
+    'your order',
   ];
 
+  /// Keywords that confirm the message IS a real transaction
   static List<String> transactionVerbs = [
-    'debit',
-    'credit',
+    'debited',
+    'credited',
     'paid',
     'received',
     'sent',
     'deducted',
     'spent',
-    'dr',
-    'cr',
+    'upi/dr',
+    'upi/cr',
+    '\bdr\b',
+    '\bcr\b',
   ];
 
   static void updateRules({
@@ -65,43 +72,43 @@ class ExclusionFilter {
     required List<String> deliveryPatterns,
     required List<String> transactionVerbs,
   }) {
-    ExclusionFilter.otpPatterns = otpPatterns;
-    ExclusionFilter.promoPatterns = promoPatterns;
+    ExclusionFilter.otpPatterns      = otpPatterns;
+    ExclusionFilter.promoPatterns    = promoPatterns;
     ExclusionFilter.reminderPatterns = reminderPatterns;
     ExclusionFilter.deliveryPatterns = deliveryPatterns;
     ExclusionFilter.transactionVerbs = transactionVerbs;
   }
 
-  /// Returns true if the text should be excluded from further processing.
-  static bool shouldExclude(String normalizedText) {
-    if (_containsAny(normalizedText, otpPatterns)) return true;
-    if (_containsAny(normalizedText, promoPatterns)) return true;
-    if (_containsAny(normalizedText, reminderPatterns)) return true;
-    if (_containsAny(normalizedText, deliveryPatterns)) return true;
-
-    // Balance-only check: if it mentions balance but has no transaction verb
-    final hasBalance = normalizedText.contains('balance') || normalizedText.contains('bal');
-    final hasTxnVerb = _containsAny(normalizedText, transactionVerbs);
-    if (hasBalance && !hasTxnVerb) return true;
-
-    return false;
-  }
-
-  /// Returns the reason for exclusion, or null if it shouldn't be excluded.
+  /// Returns the reason for exclusion, or null if it should be processed.
   static String? getExclusionReason(String normalizedText) {
-    if (_containsAny(normalizedText, otpPatterns)) return 'OTP';
-    if (_containsAny(normalizedText, promoPatterns)) return 'Promotion';
+    if (_containsAny(normalizedText, otpPatterns))      return 'OTP';
+    if (_containsAny(normalizedText, promoPatterns))    return 'Promotion';
     if (_containsAny(normalizedText, reminderPatterns)) return 'Reminder';
     if (_containsAny(normalizedText, deliveryPatterns)) return 'Delivery';
-    
-    final hasBalance = normalizedText.contains('balance') || normalizedText.contains('bal');
-    final hasTxnVerb = _containsAny(normalizedText, transactionVerbs);
+
+    // Balance-only check: only exclude if there's a balance reference AND
+    // NO real transaction verb. Bank debit/credit SMSes always have both.
+    final hasBalance = normalizedText.contains('balance') ||
+        RegExp(r'\bbal\b').hasMatch(normalizedText);
+    final hasTxnVerb = _containsAnyRegex(normalizedText, transactionVerbs);
     if (hasBalance && !hasTxnVerb) return 'Balance-only';
 
     return null;
   }
 
   static bool _containsAny(String text, List<String> patterns) {
-    return patterns.any((pattern) => text.contains(pattern.toLowerCase()));
+    return patterns.any((p) => text.contains(p.toLowerCase()));
+  }
+
+  /// Supports both plain string and \b-anchored regex patterns in the list.
+  static bool _containsAnyRegex(String text, List<String> patterns) {
+    for (final p in patterns) {
+      if (p.contains(r'\b') || p.contains('/')) {
+        if (RegExp(p, caseSensitive: false).hasMatch(text)) return true;
+      } else {
+        if (text.contains(p.toLowerCase())) return true;
+      }
+    }
+    return false;
   }
 }

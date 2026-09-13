@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fingo/app.dart';
 import 'package:fingo/core/core.dart';
 import 'package:fingo/di/injection_container.dart' as di;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
 import 'package:dartz/dartz.dart';
@@ -44,6 +45,11 @@ void main() {
     // Register fake repository to bypass Firebase dependencies in widget testing
     GetIt.instance.unregister<TransactionRepository>();
     GetIt.instance.registerLazySingleton<TransactionRepository>(() => FakeTransactionRepository());
+    
+    // Set onboarding shown to true so that Dashboard is loaded
+    FlutterSecureStorage.setMockInitialValues({
+      'fingo_notification_onboarding_shown': 'true',
+    });
   });
 
   testWidgets('Fingo App dashboard renders weekly transaction header', (WidgetTester tester) async {

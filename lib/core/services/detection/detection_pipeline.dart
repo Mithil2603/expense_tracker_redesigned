@@ -48,19 +48,26 @@ class DetectionPipeline {
     // 3. Exclusion Filter
     final exclusionReason = ExclusionFilter.getExclusionReason(normalizedText);
     if (exclusionReason != null) {
+      AppLogger.i('[DEBUG_FLOW] 4. DetectionPipeline summary - normalized text: "$normalizedText", exclusion reason: "$exclusionReason", PatternMatcher result: null, confidence: 0.0, transaction == null: true, isPending: N/A');
+      AppLogger.i('[DEBUG_FLOW] 9. Early return at line 52 (DetectionPipeline.process): excluded by ExclusionFilter (reason: "$exclusionReason")');
       AppLogger.d('DetectionPipeline: Excluded due to $exclusionReason');
       return DetectionResult(exclusionReason: exclusionReason);
     }
 
     // 4. Pattern Matcher
     final matchResult = PatternMatcher.match(normalizedText, title); // Using title as sender
+    final patternResultStr = matchResult?.pattern?.id ?? (matchResult != null ? 'generic fallback match' : 'null (no pattern matched)');
     if (matchResult == null) {
+      AppLogger.i('[DEBUG_FLOW] 4. DetectionPipeline summary - normalized text: "$normalizedText", exclusion reason: null, PatternMatcher result: "$patternResultStr", confidence: 0.0, transaction == null: true, isPending: N/A');
+      AppLogger.i('[DEBUG_FLOW] 9. Early return at line 58 (DetectionPipeline.process): matchResult == null');
       return const DetectionResult();
     }
 
     // 5. Extract Fields
     final extractedFields = FieldExtractor.extract(matchResult, normalizedText);
     if (extractedFields == null) {
+      AppLogger.i('[DEBUG_FLOW] 4. DetectionPipeline summary - normalized text: "$normalizedText", exclusion reason: null, PatternMatcher result: "$patternResultStr", confidence: 0.0, transaction == null: true, isPending: N/A');
+      AppLogger.i('[DEBUG_FLOW] 9. Early return at line 64 (DetectionPipeline.process): extractedFields == null');
       return const DetectionResult();
     }
 
@@ -82,6 +89,8 @@ class DetectionPipeline {
       );
 
       if (isDuplicate) {
+        AppLogger.i('[DEBUG_FLOW] 4. DetectionPipeline summary - normalized text: "$normalizedText", exclusion reason: null, PatternMatcher result: "$patternResultStr", confidence: ${confidenceScore.score}, transaction == null: true, isPending: N/A');
+        AppLogger.i('[DEBUG_FLOW] 9. Early return at line 86 (DetectionPipeline.process): duplicate detected');
         AppLogger.d('DetectionPipeline: Duplicate detected');
         return DetectionResult(
           isDuplicate: true,
@@ -89,6 +98,8 @@ class DetectionPipeline {
         );
       }
     } else {
+      AppLogger.i('[DEBUG_FLOW] 4. DetectionPipeline summary - normalized text: "$normalizedText", exclusion reason: null, PatternMatcher result: "$patternResultStr", confidence: ${confidenceScore.score}, transaction == null: true, isPending: N/A');
+      AppLogger.i('[DEBUG_FLOW] 9. Early return at line 93 (DetectionPipeline.process): confidence too low (${confidenceScore.score} < $reviewQueueThreshold)');
       AppLogger.d('DetectionPipeline: Confidence too low (${confidenceScore.score})');
       return DetectionResult(confidence: confidenceScore.score);
     }
@@ -137,6 +148,9 @@ class DetectionPipeline {
       detectionMeta: metadata,
       isPending: confidenceScore.score < autoCreateThreshold,
     );
+
+    final isPendingVal = confidenceScore.score < autoCreateThreshold;
+    AppLogger.i('[DEBUG_FLOW] 4. DetectionPipeline summary - normalized text: "$normalizedText", exclusion reason: null, PatternMatcher result: "$patternResultStr", confidence: ${confidenceScore.score}, transaction == null: false, isPending: $isPendingVal');
 
     return DetectionResult(
       transaction: transaction,

@@ -3,6 +3,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Required to prompt user to exempt Fingo from battery optimization -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:label="Fingo"
@@ -41,6 +43,7 @@
             android:label="Flutter Notifications Handler" 
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" 
             android:exported="true" 
+            android:stopWithTask="false"
             android:foregroundServiceType="specialUse">
             
             <property 

@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fingo/features/gamification/domain/entities/animal_league.dart';
 import '../../../../core/core.dart';
 import '../../../../di/injection_container.dart';
+import '../../../../features/expenses/presentation/bloc/transaction_bloc.dart';
+import '../../../../features/expenses/presentation/bloc/transaction_state.dart';
+import '../../../../features/expenses/domain/entities/transaction_entity.dart';
+import '../../../../core/services/quest/no_spend_streak_service.dart';
+import '../../../../core/domain/entities/quest.dart';
 import '../../domain/entities/social_post_entity.dart';
 import '../../domain/entities/leaderboard_entry.dart';
 import '../../domain/repositories/leaderboard_repository.dart';
 import '../widgets/hub_tab_toggle.dart';
+import '../widgets/quest_card.dart';
+import '../widgets/quest_section_header.dart';
+import '../widgets/no_spend_streak_card.dart';
+import '../widgets/check_in_streak_card.dart';
 
 class CommunityHubScreen extends StatefulWidget {
   const CommunityHubScreen({super.key});
@@ -100,6 +110,16 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
   }
 
   Widget _buildQuestsView(FingoState state, bool isLight) {
+    final txState = context.watch<TransactionBloc>().state;
+    final transactions = txState is TransactionLoaded ? txState.transactions : <TransactionEntity>[];
+    final streakService = sl<NoSpendStreakService>();
+    final streakData = streakService.calculateFromTransactions(transactions);
+    final recentDaysMap = streakService.getRecentDaysMap(transactions);
+
+    final dailyQuests = state.activeQuests.where((q) => q.type == QuestType.daily).toList();
+    final weeklyQuests = state.activeQuests.where((q) => q.type == QuestType.weekly).toList();
+    final monthlyQuests = state.activeQuests.where((q) => q.type == QuestType.monthly).toList();
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(
@@ -157,7 +177,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                     ),
                   ),
                   child: Text(
-                    'Break today’s budget rocks to collect rewards and climb the Ruby division! 💎',
+                    'Complete quests and maintain your streaks to earn Diamonds and XP! 💎🔥',
                     style: AppTextStyles.bodySM.copyWith(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
@@ -169,196 +189,58 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
           ),
           const SizedBox(height: 16),
 
-          // 2. Monthly Quest Card
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'JUNE CHALLENGE',
-                      style: AppTextStyles.overline.copyWith(
-                        color: AppColors.accentDark,
-                      ),
-                    ),
-                    const Text('🥚', style: TextStyle(fontSize: 20)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Hatch Fingo the Frog',
-                  style: AppTextStyles.labelMD.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                Text(
-                  'Harness smart budget habits to earn 100 XP points this month.',
-                  style: AppTextStyles.bodySM,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          AppSizes.radiusFull,
-                        ),
-                        child: SizedBox(
-                          height: 8,
-                          child: LinearProgressIndicator(
-                            value: (state.xp / 100.0).clamp(0.0, 1.0),
-                            color: AppColors.accent,
-                            backgroundColor: isLight
-                                ? const Color(0xFFE5E5E5)
-                                : AppColors.bgDark,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${state.xp}/100 XP',
-                      style: AppTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+          // 2. Streaks Section
+          CheckInStreakCard(checkInStreak: state.checkInStreak),
+          const SizedBox(height: 12),
+          NoSpendStreakCard(streakData: streakData, recentDaysMap: recentDaysMap),
+          const SizedBox(height: 20),
 
-          // 3. Daily Quests Header
-          Row(
-            children: [
-              Text("Daily Quests", style: AppTextStyles.h2),
-              const SizedBox(width: 6),
-              const Icon(
-                Icons.rocket_launch_rounded,
-                color: AppColors.accent,
-                size: 20,
-              ),
-            ],
+          // 3. Daily Quests
+          const QuestSectionHeader(
+            title: 'Daily Quests',
+            subtitle: 'Resets in 24h',
+            icon: Icons.wb_sunny_rounded,
+            iconColor: Colors.orange,
           ),
+          if (dailyQuests.isEmpty)
+            _buildEmptyQuestsMsg('No active daily quests right now.')
+          else
+            ...dailyQuests.map((q) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: QuestCard(quest: q),
+                )),
           const SizedBox(height: 12),
 
-          // Daily Quests (Rock breaking theme)
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.quests.length,
-            separatorBuilder: (context, index) =>
-                const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final quest = state.quests[index];
-
-              final String rockIcon;
-              if (quest.completed) {
-                rockIcon = '🪙';
-              } else if (quest.progress > 0) {
-                rockIcon = '🔨';
-              } else {
-                rockIcon = '🪨';
-              }
-
-              return AppCard(
-                onTap: () {
-                  state.completeQuest(quest.id);
-                },
-                color: quest.completed
-                    ? (isLight
-                        ? AppColors.successSurfaceLight
-                        : AppColors.successSurfaceDark)
-                    : null,
-                borderColor: quest.completed
-                    ? AppColors.primary.withValues(alpha: 0.6)
-                    : null,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: quest.completed
-                            ? AppColors.primary.withValues(alpha: 0.15)
-                            : (isLight ? Colors.white : AppColors.bgDark),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: quest.completed
-                              ? AppColors.primary
-                              : AppColors.outline,
-                          width: 2,
-                        ),
-                      ),
-                      child: Text(
-                        rockIcon,
-                        style: const TextStyle(fontSize: 22),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  quest.title,
-                                  style: AppTextStyles.labelMD.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '+${quest.xpReward} XP',
-                                style: AppTextStyles.caption.copyWith(
-                                  color: AppColors.accentDark,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(quest.description, style: AppTextStyles.bodySM),
-                          if (quest.target > 1) ...[
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                AppSizes.radiusFull,
-                              ),
-                              child: SizedBox(
-                                height: 6,
-                                child: LinearProgressIndicator(
-                                  value:
-                                      (quest.progress / quest.target).clamp(0.0, 1.0),
-                                  color: AppColors.primary,
-                                  backgroundColor: isLight
-                                      ? const Color(0xFFE5E5E5)
-                                      : AppColors.bgDark,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${quest.progress}/${quest.target}',
-                              style: AppTextStyles.caption.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+          // 4. Weekly Quests
+          const QuestSectionHeader(
+            title: 'Weekly Quests',
+            subtitle: 'Resets Sunday',
+            icon: Icons.calendar_today_rounded,
+            iconColor: Color(0xFF6C5CE7),
           ),
+          if (weeklyQuests.isEmpty)
+            _buildEmptyQuestsMsg('No active weekly quests right now.')
+          else
+            ...weeklyQuests.map((q) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: QuestCard(quest: q),
+                )),
+          const SizedBox(height: 12),
+
+          // 5. Monthly Quests
+          const QuestSectionHeader(
+            title: 'Monthly Quests',
+            subtitle: 'Resets 1st of month',
+            icon: Icons.calendar_month_rounded,
+            iconColor: Color(0xFFE74C3C),
+          ),
+          if (monthlyQuests.isEmpty)
+            _buildEmptyQuestsMsg('No active monthly quests right now.')
+          else
+            ...monthlyQuests.map((q) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: QuestCard(quest: q),
+                )),
           const SizedBox(height: 24),
           // Duolingo-style horizontal league progression
           SizedBox(
@@ -481,6 +363,21 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                 ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyQuestsMsg(String msg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        msg,
+        style: AppTextStyles.bodySM.copyWith(color: Colors.grey),
       ),
     );
   }

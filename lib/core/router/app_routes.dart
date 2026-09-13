@@ -31,4 +31,21 @@ abstract final class AppRoutes {
   // ─── Authentication ────────────────────────────────────────────────────────
   static const String authPath = '/auth';
   static const String authName = 'auth';
+
+  // ─── Onboarding ────────────────────────────────────────────────────────────
+  /// Shown once on first launch (after auth, before dashboard) to request
+  /// POST_NOTIFICATIONS + Notification Listener Access permissions.
+  static const String notificationOnboardingPath = '/notification-onboarding';
+  static const String notificationOnboardingName = 'notification-onboarding';
+
+  // ─── Pending Transaction Review ────────────────────────────────────────────
+  /// Deep-link target when user taps a system notification for an auto-detected transaction.
+  /// [:transactionId] is the Firestore document ID of the pending transaction.
+  static const String pendingReviewPath = '/pending-review/:transactionId';
+  static const String pendingReviewName = 'pending-review';
+
+  // ─── IPO Capital Hub & ASBA Engine ─────────────────────────────────────────
+  static const String ipoHubPath = '/ipo-hub';
+  static const String ipoHubName = 'ipo-hub';
 }
+
