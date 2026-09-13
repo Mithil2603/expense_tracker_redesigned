@@ -6,6 +6,16 @@
   - [x] Create ThemeProvider with flutter_secure_storage
   - [x] Wrap MaterialApp with ListenableBuilder
   - [x] Add Switch to Profile Settings
+- [x] Task 2: New Expense Categories
+  - [x] Add `vehicleAndTransport` and `telecomAndRecharges` to `ExpenseCategory` enum in `transaction_entity.dart`
+  - [x] Update `displayName`, `icon`, and `color` in `ExpenseCategoryExtension`
+  - [x] Update serialization/deserialization maps in `transaction_model.dart`
+  - [x] Update category picker in `transaction_form_screen.dart`
+  - [x] Update quick category addition sheet in `add_expense_sheet.dart`
+  - [x] Add keywords & merchants to `category_mapper.dart` and `sms_parser.dart`
+  - [x] Handle new categories in `financial_report.dart`, `generate_report.dart`, `generate_insights.dart`, and `remote_config_service.dart`
+  - [x] Manually verify categorization with "Jio" and "BPCL"
+  - [x] Run all automated tests and verify walkthrough
 - [x] Part D: Additional Expense Categories
   - [x] Add groceries, transferredToOthers, hardwareRepair to enum
   - [x] Assign icons and UI colors

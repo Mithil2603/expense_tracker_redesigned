@@ -76,6 +76,8 @@ enum ExpenseCategory {
   groceries,
   transferredToOthers,
   hardwareRepair,
+  vehicleAndTransport,
+  telecomAndRecharges,
   other,
 }
 
@@ -132,6 +134,10 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return 'Transferred to Others';
       case ExpenseCategory.hardwareRepair:
         return 'Hardware & Repair';
+      case ExpenseCategory.vehicleAndTransport:
+        return 'Vehicle & Transport';
+      case ExpenseCategory.telecomAndRecharges:
+        return 'Telecom & Recharges';
       case ExpenseCategory.other:
         return 'Other Expense';
     }
@@ -189,6 +195,10 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return Icons.send_rounded;
       case ExpenseCategory.hardwareRepair:
         return Icons.build_rounded;
+      case ExpenseCategory.vehicleAndTransport:
+        return Icons.directions_car_rounded;
+      case ExpenseCategory.telecomAndRecharges:
+        return Icons.wifi_rounded;
       case ExpenseCategory.other:
         return Icons.widgets_rounded;
     }
@@ -246,6 +256,10 @@ extension ExpenseCategoryExtension on ExpenseCategory {
         return const Color(0xFFC51162); // Pink Accent 700
       case ExpenseCategory.hardwareRepair:
         return const Color(0xFFBF360C); // Deep Orange 900
+      case ExpenseCategory.vehicleAndTransport:
+        return const Color(0xFF607D8B); // Blue Grey 500
+      case ExpenseCategory.telecomAndRecharges:
+        return const Color(0xFF00ACC1); // Teal 600
       case ExpenseCategory.other:
         return const Color(0xFF757575); // Grey 600
     }

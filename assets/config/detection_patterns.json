@@ -1,50 +1,98 @@
 [
   {
-    "id": "hdfc_debit_upi_v1",
+    "id": "hdfc_debit_upi_v2",
     "bank": "HDFC",
     "type": "debit",
-    "senderPatterns": ["HDFCBK", "HDFC", "HDFCBANK"],
-    "regex": "(?:account|a\\/c)\\s*(?:xx|ending)?\\s*(?<acct>\\d{4})\\s*(?:debited|paid)\\s*(?:by)?\\s*(?:inr)?\\s*(?<amount>[\\d,]+(?:\\.\\d{1,2})?)\\s*(?:to|for|at)\\s*(?<merchant>[a-z0-9\\s\\.]+?)\\s*(?:on|ref|upi)",
-    "extractionMap": {
-      "amount": "amount",
-      "merchant": "merchant",
-      "accountLast4": "acct"
-    },
+    "senderPatterns": ["hdfcbk", "hdfcbank", "hdfc"],
+    "regex": "(?:inr|rs|₹)\\.?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)\\s*debited\\s*from\\s*(?:a/c|account|acct)?\\s*(?:xx|x\\*+)?\\s*(?<acct>\\d{4}).*?(?:to|at|for)\\s+(?<merchant>[a-z0-9][a-z0-9\\s\\.\\-\\_&']{1,40}?)\\s*(?:\\.|ref|on\\s|\\d{2}-)",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
     "paymentMethod": "upi",
-    "confidenceBoost": 0.2,
-    "version": 1,
+    "confidenceBoost": 0.30,
+    "version": 2,
     "enabled": true
   },
   {
-    "id": "sbi_debit_upi_v1",
+    "id": "hdfc_credit_v2",
+    "bank": "HDFC",
+    "type": "credit",
+    "senderPatterns": ["hdfcbk", "hdfcbank", "hdfc"],
+    "regex": "(?:inr|rs|₹)\\.?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)\\s*credited\\s*(?:to|in)\\s*(?:a/c|account|acct)?\\s*(?:xx|x\\*+)?\\s*(?<acct>\\d{4})(?:.*?(?:from|by)\\s+(?<merchant>[a-z0-9][a-z0-9\\s\\.\\-\\_&']{1,40}))?",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.30,
+    "version": 2,
+    "enabled": true
+  },
+  {
+    "id": "sbi_debit_v2",
     "bank": "SBI",
     "type": "debit",
-    "senderPatterns": ["SBIUPI", "SBI", "STATEBANK"],
-    "regex": "debited\\s*(?:by)?\\s*(?:inr)?\\s*(?<amount>[\\d,]+(?:\\.\\d{1,2})?)\\s*from\\s*(?:a\\/c|account)\\s*(?<acct>\\d{4}).*?to\\s*(?<merchant>[a-z0-9\\s\\.]+?)\\s*(?:ref|upi)",
-    "extractionMap": {
-      "amount": "amount",
-      "merchant": "merchant",
-      "accountLast4": "acct"
-    },
+    "senderPatterns": ["sbiupi", "sbmsbi", "statebank", "sbi"],
+    "regex": "(?:a/c|account|acct)\\s*(?:no\\.?|number)?\\s*(?:xx|x\\*+)?\\s*(?<acct>\\d{4})\\s*(?:is\\s*)?debited\\s*(?:by|with|of)?\\s*(?:inr|rs|₹)?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)(?:.*?(?:to|at|for)\\s+(?<merchant>[a-z0-9][a-z0-9\\s\\.\\-\\_&'\\/]{1,40}?)(?:\\s*ref|\\s*on\\s|\\s*\\.\\s*|\\s*bal))?",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
     "paymentMethod": "upi",
-    "confidenceBoost": 0.2,
-    "version": 1,
+    "confidenceBoost": 0.28,
+    "version": 2,
     "enabled": true
   },
   {
-    "id": "au_debit_upi_v1",
-    "bank": "AU Bank",
+    "id": "au_debit_upi_v2",
+    "bank": "AU Small Finance Bank",
     "type": "debit",
-    "senderPatterns": ["AUBANK", "AU Bank", "AU SMALL", "AU"],
-    "regex": "dr\\s*(?:inr|rs)?\\s*(?<amount>[\\d,]+(?:\\.\\d{1,2})?)\\s*-\\s*au\\s*account\\s*(?:x|ending)?\\s*(?<acct>\\d{4}).*?upi\\/dr\\/\\d+\\/(?<merchant>[^\\/]+)",
-    "extractionMap": {
-      "amount": "amount",
-      "merchant": "merchant",
-      "accountLast4": "acct"
-    },
+    "senderPatterns": ["aubank", "aubksb", "ausbfd", "au-bank", "ausb", "au small", "au"],
+    "regex": "\\bdr\\b\\s*(?:inr|rs|₹)?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)\\s*-?\\s*au\\s*(?:account|a/c|acct)\\s*(?:x+)?\\s*(?<acct>\\d{4})(?:.*?upi/dr/(?<ref>\\d+)/(?<merchant>[^/\\n\\r]{1,60}?))?(?=\\s*(?:balance|bal|fraud|call|\\d{2}-[a-z]{3}|$))",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
     "paymentMethod": "upi",
-    "confidenceBoost": 0.3,
-    "version": 1,
+    "confidenceBoost": 0.35,
+    "version": 2,
+    "enabled": true
+  },
+  {
+    "id": "au_credit_upi_v2",
+    "bank": "AU Small Finance Bank",
+    "type": "credit",
+    "senderPatterns": ["aubank", "aubksb", "ausbfd", "au-bank", "ausb", "au small", "au"],
+    "regex": "\\bcr\\b\\s*(?:inr|rs|₹)?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)\\s*-?\\s*au\\s*(?:account|a/c|acct)\\s*(?:x+)?\\s*(?<acct>\\d{4})(?:.*?upi/cr/(?<ref>\\d+)/(?<merchant>[^/\\n\\r]{1,60}?))?(?=\\s*(?:balance|bal|fraud|call|\\d{2}-[a-z]{3}|$))",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.35,
+    "version": 2,
+    "enabled": true
+  },
+  {
+    "id": "icici_debit_v2",
+    "bank": "ICICI",
+    "type": "debit",
+    "senderPatterns": ["icicib", "icicibank", "icici"],
+    "regex": "(?:a/c|account|acct|ac)\\s*(?:xx|x\\*+)?\\s*(?<acct>\\d{4})\\s*debited\\s*(?:for|by|of|with)?\\s*(?:inr|rs|₹)?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)(?:.*?(?:upi:|to|at|for)\\s*(?:ref)?/?\\s*(?<merchant>[a-z0-9][a-z0-9\\s\\.\\-\\_&']{1,40}?)(?:\\s*ref|\\s*on|\\s*\\.|$|\\s*\\d))?",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.28,
+    "version": 2,
+    "enabled": true
+  },
+  {
+    "id": "axis_debit_v2",
+    "bank": "Axis Bank",
+    "type": "debit",
+    "senderPatterns": ["axisbk", "axisbank", "axis"],
+    "regex": "(?:inr|rs|₹)?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)\\s*debited\\s*from\\s*(?:axis\\s*bank\\s*)?(?:a/c|account|acct)\\s*(?:no\\.?)?\\s*(?:xx|x\\*+)?\\s*(?<acct>\\d{4})(?:.*?(?:merchant|to|at|for):\\s*(?<merchant>[a-z0-9][a-z0-9\\s\\.\\-\\_&']{1,40}?)(?:\\s*ref|\\s*on|\\s*\\.|$|\\s*upi))?",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.28,
+    "version": 2,
+    "enabled": true
+  },
+  {
+    "id": "kotak_debit_v2",
+    "bank": "Kotak",
+    "type": "debit",
+    "senderPatterns": ["kotakb", "kotakbank", "kotak"],
+    "regex": "(?:inr|rs|₹)?\\s*(?<amount>[\\d]+(?:\\.\\d{1,2})?)\\s*debited\\s*from\\s*(?:kotak[^\\d]{0,20})?(?:a/c|account|acct)\\s*(?:xx|x\\*+)?\\s*(?<acct>\\d{4})(?:.*?(?:info:|to|at|merchant:)\\s*(?<merchant>[a-z0-9][a-z0-9\\s\\.\\-\\_&']{1,40}?)(?:\\s*ref|\\s*on|\\s*\\.|$|\\s*\\d))?",
+    "extractionMap": { "amount": "amount", "merchant": "merchant", "accountLast4": "acct" },
+    "paymentMethod": "upi",
+    "confidenceBoost": 0.28,
+    "version": 2,
     "enabled": true
   }
 ]

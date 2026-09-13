@@ -1,37 +1,23 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../features/expenses/domain/entities/transaction_entity.dart';
 import '../../features/community/domain/entities/social_post_entity.dart';
+import '../domain/entities/quest.dart';
+import '../domain/entities/quest_event.dart';
+import '../domain/entities/quest_completion_reward.dart';
+import '../services/quest/no_spend_streak_service.dart';
+import '../services/quest/quest_engine_service.dart';
 
 // ─── Reward System Constants (tunable in one place) ──────────────────────────
-const int kDailyStreakRewardDiamonds  = 10;
-const int kWeeklyRewardDiamonds       = 50;
-const int kMonthlyRewardDiamonds      = 200;
+const int kDailyStreakRewardDiamonds = 10;
+const int kWeeklyRewardDiamonds = 50;
+const int kMonthlyRewardDiamonds = 200;
 
 /// Which reward tier just fired.
 enum RewardType { daily, weekly, monthly }
-
-/// QuestItem — represents a gamified daily quest task.
-class QuestItem {
-  final String id;
-  final String title;
-  final String description;
-  final int xpReward;
-  int progress;
-  final int target;
-  bool completed;
-
-  QuestItem({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.xpReward,
-    required this.progress,
-    required this.target,
-    required this.completed,
-  });
-}
 
 /// FingoState — reactive state container managing all gamified stats and logs.
 class FingoState extends ChangeNotifier {
@@ -56,42 +42,26 @@ class FingoState extends ChangeNotifier {
   /// Persisted across app kills so the celebration screen re-shows on next open.
   List<RewardType> pendingRewards = [];
 
-  late List<QuestItem> quests;
+  List<Quest> activeQuests = [];
+  List<Quest> get quests => activeQuests;
+  List<QuestCompletionReward> pendingQuestRewards = [];
+  NoSpendStreakData? noSpendStreak;
+  int checkInStreak = 0;
+  int monthlyCheckInCount = 0;
+  Set<String> _awardedQuestIds = {};
+
+  // In-memory session flags to prevent redundant evaluations
+  bool _dailyCheckInChecked = false;
+
   late List<TransactionEntity> transactions;
   late List<SocialPostEntity> feedItems;
 
   void _initializeDefaults() {
-    quests = [
-      QuestItem(
-        id: 'q1',
-        title: 'First Save',
-        description: 'Log your first transaction of the week',
-        xpReward: 10,
-        progress: 0,
-        target: 1,
-        completed: false,
-      ),
-      QuestItem(
-        id: 'q2',
-        title: 'Budget Guardian',
-        description: 'Keep daily expenses under ₹1,000',
-        xpReward: 15,
-        progress: 0,
-        target: 1000,
-        completed: false,
-      ),
-      QuestItem(
-        id: 'q3',
-        title: 'Consistent Tracker',
-        description: 'Log 3 transactions this week',
-        xpReward: 20,
-        progress: 0,
-        target: 3,
-        completed: false,
-      ),
-    ];
+    activeQuests = [];
+    pendingQuestRewards = [];
     transactions = [];
     feedItems = [];
+    _awardedQuestIds = {};
   }
 
   /// Add XP and handle leveling up
@@ -145,13 +115,14 @@ class FingoState extends ChangeNotifier {
 
   // ─── Persistence Keys ─────────────────────────────────────────────────────
 
-  static const String _keyCompletedQuests      = 'fingo_completed_quests';
-  static const String _keyQuestsLastReset       = 'fingo_quests_last_reset';
-  static const String _keyHealthLastReset       = 'fingo_health_last_reset';
-  static const String _keyLastStreakRewardDate  = 'fingo_last_streak_reward_date';
-  static const String _keyWeeklyRewardWeek      = 'fingo_weekly_reward_week';
-  static const String _keyMonthlyRewardMonth    = 'fingo_monthly_reward_month';
-  static const String _keyPendingRewards        = 'fingo_pending_rewards';
+  static const String _keyHealthLastReset = 'fingo_health_last_reset';
+  static const String _keyLastStreakRewardDate =
+      'fingo_last_streak_reward_date';
+  static const String _keyWeeklyRewardWeek = 'fingo_weekly_reward_week';
+  static const String _keyMonthlyRewardMonth = 'fingo_monthly_reward_month';
+  static const String _keyPendingRewards = 'fingo_pending_rewards';
+  static const String _keyPendingQuestRewards = 'fingo_pending_quest_rewards';
+  static const String _keyAwardedQuestIds = 'fingo_awarded_quest_ids';
 
   // ─── Storage helpers ──────────────────────────────────────────────────────
 
@@ -159,23 +130,15 @@ class FingoState extends ChangeNotifier {
 
   Future<void> _saveStats() async {
     try {
-      await _storage.write(key: 'fingo_streak',         value: streak.toString());
-      await _storage.write(key: 'fingo_xp',             value: xp.toString());
-      await _storage.write(key: 'fingo_diamonds',       value: diamonds.toString());
-      await _storage.write(key: 'fingo_level',          value: level.toString());
-      await _storage.write(key: 'fingo_health',         value: health.toString());
-      await _storage.write(key: 'fingo_monthly_budget', value: monthlyBudget.toString());
-    } catch (_) {}
-  }
-
-  Future<void> _markQuestCompleted(String questId) async {
-    try {
-      final completedStr = await _storage.read(key: _keyCompletedQuests) ?? '';
-      final completedIds = completedStr.split(',').where((id) => id.isNotEmpty).toList();
-      if (!completedIds.contains(questId)) {
-        completedIds.add(questId);
-        await _storage.write(key: _keyCompletedQuests, value: completedIds.join(','));
-      }
+      await _storage.write(key: 'fingo_streak', value: streak.toString());
+      await _storage.write(key: 'fingo_xp', value: xp.toString());
+      await _storage.write(key: 'fingo_diamonds', value: diamonds.toString());
+      await _storage.write(key: 'fingo_level', value: level.toString());
+      await _storage.write(key: 'fingo_health', value: health.toString());
+      await _storage.write(
+        key: 'fingo_monthly_budget',
+        value: monthlyBudget.toString(),
+      );
     } catch (_) {}
   }
 
@@ -186,23 +149,32 @@ class FingoState extends ChangeNotifier {
     } catch (_) {}
   }
 
+  Future<void> _savePendingQuestRewards() async {
+    try {
+      final value = jsonEncode(
+        pendingQuestRewards.map((r) => r.toJson()).toList(),
+      );
+      await _storage.write(key: _keyPendingQuestRewards, value: value);
+    } catch (_) {}
+  }
+
   // ─── loadStats ────────────────────────────────────────────────────────────
 
   Future<void> loadStats() async {
     try {
-      final sStr  = await _storage.read(key: 'fingo_streak');
-      final xStr  = await _storage.read(key: 'fingo_xp');
-      final dStr  = await _storage.read(key: 'fingo_diamonds');
-      final lStr  = await _storage.read(key: 'fingo_level');
-      final hStr  = await _storage.read(key: 'fingo_health');
-      final bStr  = await _storage.read(key: 'fingo_monthly_budget');
+      final sStr = await _storage.read(key: 'fingo_streak');
+      final xStr = await _storage.read(key: 'fingo_xp');
+      final dStr = await _storage.read(key: 'fingo_diamonds');
+      final lStr = await _storage.read(key: 'fingo_level');
+      final hStr = await _storage.read(key: 'fingo_health');
+      final bStr = await _storage.read(key: 'fingo_monthly_budget');
 
-      if (sStr != null) streak         = int.tryParse(sStr) ?? streak;
-      if (xStr != null) xp             = int.tryParse(xStr) ?? xp;
-      if (dStr != null) diamonds       = int.tryParse(dStr) ?? diamonds;
-      if (lStr != null) level          = int.tryParse(lStr) ?? level;
-      if (hStr != null) health         = int.tryParse(hStr) ?? health;
-      if (bStr != null) monthlyBudget  = double.tryParse(bStr) ?? monthlyBudget;
+      if (sStr != null) streak = int.tryParse(sStr) ?? streak;
+      if (xStr != null) xp = int.tryParse(xStr) ?? xp;
+      if (dStr != null) diamonds = int.tryParse(dStr) ?? diamonds;
+      if (lStr != null) level = int.tryParse(lStr) ?? level;
+      if (hStr != null) health = int.tryParse(hStr) ?? health;
+      if (bStr != null) monthlyBudget = double.tryParse(bStr) ?? monthlyBudget;
 
       final todayStr = _todayStr();
 
@@ -214,31 +186,98 @@ class FingoState extends ChangeNotifier {
         await _saveStats();
       }
 
-      // Quest Reset / Restoration
-      final resetStr = await _storage.read(key: _keyQuestsLastReset);
-      if (resetStr != todayStr) {
-        await _storage.write(key: _keyQuestsLastReset, value: todayStr);
-        await _storage.write(key: _keyCompletedQuests, value: '');
-      } else {
-        final completedStr = await _storage.read(key: _keyCompletedQuests) ?? '';
-        final completedIds = completedStr.split(',').where((id) => id.isNotEmpty).toList();
-        for (final id in completedIds) {
-          final q = quests.firstWhere((quest) => quest.id == id, orElse: () => quests.first);
-          q.completed = true;
-          q.progress = q.target;
-        }
+      // Restore check-in streak
+      final cStreakStr = await _storage.read(key: 'fingo_checkin_streak');
+      if (cStreakStr != null) {
+        checkInStreak = int.tryParse(cStreakStr) ?? streak;
+        streak = checkInStreak;
       }
+      final now = DateTime.now();
+      final monthKey =
+          'fingo_monthly_checkins_${now.year}_${now.month.toString().padLeft(2, '0')}';
+      final mCountStr = await _storage.read(key: monthKey);
+      monthlyCheckInCount = int.tryParse(mCountStr ?? '0') ?? 0;
 
-      // Restore pending rewards (survive app kill)
+      // Restore pending rewards (survive app kill, but validate daily guard)
       final pendingStr = await _storage.read(key: _keyPendingRewards) ?? '';
-      pendingRewards = pendingStr
+      final restoredRewards = pendingStr
           .split(',')
           .where((s) => s.isNotEmpty)
           .map((s) {
-            try { return RewardType.values.byName(s); } catch (_) { return null; }
+            try {
+              return RewardType.values.byName(s);
+            } catch (_) {
+              return null;
+            }
           })
           .whereType<RewardType>()
           .toList();
+
+      // Restore awarded quest IDs set
+      final awardedStr = await _storage.read(key: _keyAwardedQuestIds);
+      if (awardedStr != null && awardedStr.isNotEmpty) {
+        try {
+          _awardedQuestIds = Set<String>.from(
+            jsonDecode(awardedStr) as List<dynamic>,
+          );
+        } catch (_) {}
+      }
+
+      // Guard: if the reward was already granted & acknowledged, don't re-queue it.
+      final lastRewardDate = await _storage.read(key: _keyLastStreakRewardDate);
+      final alreadyRewardedToday = lastRewardDate == _todayStr();
+
+      final thisMonday = _mondayOfWeek(now);
+      final lastMonday = thisMonday.subtract(const Duration(days: 7));
+      final lastWeekKey = _dateStr(lastMonday);
+      final lastRewardedWeek = await _storage.read(key: _keyWeeklyRewardWeek);
+
+      final prevMonth = now.month == 1 ? 12 : now.month - 1;
+      final prevMonthYear = now.month == 1 ? now.year - 1 : now.year;
+      final lastMonthKey =
+          '$prevMonthYear-${prevMonth.toString().padLeft(2, '0')}';
+      final lastRewardedMonth = await _storage.read(
+        key: _keyMonthlyRewardMonth,
+      );
+
+      pendingRewards = restoredRewards.where((r) {
+        if (r == RewardType.daily && alreadyRewardedToday) {
+          return false;
+        }
+        if (r == RewardType.weekly && lastRewardedWeek == lastWeekKey) {
+          return false;
+        }
+        if (r == RewardType.monthly && lastRewardedMonth == lastMonthKey) {
+          return false;
+        }
+        return true;
+      }).toList();
+
+      // Restore pending quest rewards
+      final pQuestStr = await _storage.read(key: _keyPendingQuestRewards);
+      if (pQuestStr != null && pQuestStr.isNotEmpty) {
+        try {
+          final list = jsonDecode(pQuestStr) as List<dynamic>;
+          final todayStr = _todayStr();
+          pendingQuestRewards = list
+              .map(
+                (e) =>
+                    QuestCompletionReward.fromJson(e as Map<String, dynamic>),
+              )
+              .where((r) {
+                if (_awardedQuestIds.contains(r.questId)) return false;
+                if (r.questId.contains('_20')) {
+                  final parts = r.questId.split('_');
+                  final datePart = parts.last;
+                  if (datePart.length == 10 && datePart.compareTo(todayStr) < 0) {
+                    return false;
+                  }
+                }
+                return true;
+              })
+              .toList();
+        } catch (_) {}
+      }
 
       // Daily check-in reward (app open = streak check-in)
       await _checkDailyCheckIn();
@@ -249,11 +288,16 @@ class FingoState extends ChangeNotifier {
 
   // ─── Daily Check-in Reward ───────────────────────────────────────────────
 
-  /// Called once per app open (inside loadStats). 
+  /// Called once per app open (inside loadStats).
   /// Awards [kDailyStreakRewardDiamonds] the FIRST time the user opens the app
   /// on any calendar day. Uses a persisted date flag — never fires twice the same day.
   Future<void> _checkDailyCheckIn() async {
+    if (_dailyCheckInChecked) return;
+    _dailyCheckInChecked = true;
     try {
+      final now = DateTime.now();
+      await registerDailyCheckIn(now);
+
       final todayStr = _todayStr();
       final lastRewardDate = await _storage.read(key: _keyLastStreakRewardDate);
       if (lastRewardDate == todayStr) return; // Already rewarded today
@@ -268,6 +312,45 @@ class FingoState extends ChangeNotifier {
         pendingRewards.add(RewardType.daily);
         await _savePendingRewards();
       }
+    } catch (_) {}
+  }
+
+  Future<void> registerDailyCheckIn(DateTime now) async {
+    try {
+      final todayStr =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final lastDate = await _storage.read(key: 'fingo_last_checkin_date');
+      if (lastDate == todayStr) return;
+
+      final yesterday = now.subtract(const Duration(days: 1));
+      final yesterdayStr =
+          '${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}';
+
+      if (lastDate == yesterdayStr) {
+        checkInStreak++;
+      } else if (lastDate == null || lastDate != todayStr) {
+        checkInStreak = 1;
+      }
+      streak = checkInStreak;
+
+      final monthKey =
+          'fingo_monthly_checkins_${now.year}_${now.month.toString().padLeft(2, '0')}';
+      final monthCountStr = await _storage.read(key: monthKey);
+      monthlyCheckInCount = (int.tryParse(monthCountStr ?? '0') ?? 0) + 1;
+
+      await _storage.write(key: 'fingo_last_checkin_date', value: todayStr);
+      await _storage.write(
+        key: 'fingo_checkin_streak',
+        value: checkInStreak.toString(),
+      );
+      await _storage.write(
+        key: monthKey,
+        value: monthlyCheckInCount.toString(),
+      );
+      await _storage.write(
+        key: 'fingo_streak',
+        value: checkInStreak.toString(),
+      );
     } catch (_) {}
   }
 
@@ -294,8 +377,11 @@ class FingoState extends ChangeNotifier {
 
       // Compute last week's spending
       final weeklyBudget = monthlyBudget / 4.33;
-      final lastWeekSpend = _spendInRange(txs, lastMonday,
-          lastMonday.add(const Duration(days: 6)));
+      final lastWeekSpend = _spendInRange(
+        txs,
+        lastMonday,
+        lastMonday.add(const Duration(days: 6)),
+      );
 
       await _storage.write(key: _keyWeeklyRewardWeek, value: lastWeekKey);
 
@@ -315,16 +401,20 @@ class FingoState extends ChangeNotifier {
     try {
       final now = DateTime.now();
       // Only check on day 1+ of a new month — look at the previous month
-      final prevMonth      = now.month == 1 ? 12 : now.month - 1;
-      final prevMonthYear  = now.month == 1 ? now.year - 1 : now.year;
-      final lastMonthKey   = '$prevMonthYear-${prevMonth.toString().padLeft(2, '0')}';
+      final prevMonth = now.month == 1 ? 12 : now.month - 1;
+      final prevMonthYear = now.month == 1 ? now.year - 1 : now.year;
+      final lastMonthKey =
+          '$prevMonthYear-${prevMonth.toString().padLeft(2, '0')}';
 
       final lastRewarded = await _storage.read(key: _keyMonthlyRewardMonth);
       if (lastRewarded == lastMonthKey) return; // Already checked last month
 
       // Only evaluate if we've actually crossed into a new month
-      final lastEvaluatedMonth = await _storage.read(key: '_fingo_month_eval_guard');
-      final thisMonthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      final lastEvaluatedMonth = await _storage.read(
+        key: '_fingo_month_eval_guard',
+      );
+      final thisMonthKey =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}';
       if (lastEvaluatedMonth == thisMonthKey && lastRewarded != lastMonthKey) {
         // We've already run this month's evaluation, no new month yet
       }
@@ -347,9 +437,9 @@ class FingoState extends ChangeNotifier {
   }
 
   /// Dismiss a reward screen and remove the reward from the pending queue.
-  void clearPendingReward(RewardType type) {
+  Future<void> clearPendingReward(RewardType type) async {
     pendingRewards.remove(type);
-    _savePendingRewards();
+    await _savePendingRewards();
     notifyListeners();
   }
 
@@ -366,23 +456,31 @@ class FingoState extends ChangeNotifier {
   DateTime _mondayOfWeek(DateTime date) =>
       date.subtract(Duration(days: date.weekday - 1));
 
-  double _spendInRange(List<TransactionEntity> txs, DateTime from, DateTime to) {
+  double _spendInRange(
+    List<TransactionEntity> txs,
+    DateTime from,
+    DateTime to,
+  ) {
     final fromDay = DateTime(from.year, from.month, from.day);
-    final toDay   = DateTime(to.year, to.month, to.day, 23, 59, 59);
+    final toDay = DateTime(to.year, to.month, to.day, 23, 59, 59);
     return txs
-        .where((t) =>
-            t.type == TransactionType.expense &&
-            !t.date.isBefore(fromDay) &&
-            !t.date.isAfter(toDay))
+        .where(
+          (t) =>
+              t.type == TransactionType.expense &&
+              !t.date.isBefore(fromDay) &&
+              !t.date.isAfter(toDay),
+        )
         .fold(0.0, (sum, t) => sum + t.amount);
   }
 
   double _spendInMonth(List<TransactionEntity> txs, int year, int month) {
     return txs
-        .where((t) =>
-            t.type == TransactionType.expense &&
-            t.date.year == year &&
-            t.date.month == month)
+        .where(
+          (t) =>
+              t.type == TransactionType.expense &&
+              t.date.year == year &&
+              t.date.month == month,
+        )
         .fold(0.0, (sum, t) => sum + t.amount);
   }
 
@@ -395,133 +493,71 @@ class FingoState extends ChangeNotifier {
         .where((t) => t.type == TransactionType.expense)
         .fold(0.0, (sum, t) => sum + t.amount);
 
-    _calculateStreakFromTransactions();
     _generateMilestoneFeed();
-
-    final today = DateTime.now();
-
-    // Quest 1: First Save
-    final q1 = quests.firstWhere((q) => q.id == 'q1');
-    if (!q1.completed && transactions.isNotEmpty) {
-      q1.completed = true;
-      q1.progress = 1;
-      _markQuestCompleted('q1');
-      awardXP(q1.xpReward);
-      awardDiamonds(q1.xpReward);
-    }
-
-    // Quest 2: Budget Guardian
-    final q2 = quests.firstWhere((q) => q.id == 'q2');
-    final todaySpent = transactions
-        .where((t) =>
-            t.type == TransactionType.expense &&
-            t.date.year == today.year &&
-            t.date.month == today.month &&
-            t.date.day == today.day)
-        .fold(0.0, (sum, t) => sum + t.amount);
-    q2.progress = todaySpent.toInt();
-    if (q2.progress > q2.target && !q2.completed) {
-      q2.completed = true;
-      _markQuestCompleted('q2');
-      if (health > 0) {
-        health = (health - 5).clamp(0, maxHealth);
-        _saveStats();
-      }
-    }
-
-    // Quest 3: Consistent Tracker
-    final q3 = quests.firstWhere((q) => q.id == 'q3');
-    if (!q3.completed) {
-      final thisWeekCount = transactions.where((t) {
-        final diff = today.difference(t.date).inDays;
-        return diff >= 0 && diff < 7;
-      }).length;
-      q3.progress = thisWeekCount;
-      if (q3.progress >= q3.target) {
-        q3.completed = true;
-        _markQuestCompleted('q3');
-        awardXP(q3.xpReward);
-        awardDiamonds(q3.xpReward);
-      }
-    }
-
-    // Budget adherence rewards (weekly/monthly end-of-period checks)
     _checkBudgetRewards(transactions);
 
-    notifyListeners();
-  }
-
-  void _calculateStreakFromTransactions() {
-    if (transactions.isEmpty) {
-      streak = 0;
-      return;
-    }
-
-    final activeDates = transactions.map((t) {
-      return DateTime(t.date.year, t.date.month, t.date.day);
-    }).toSet().toList();
-
-    activeDates.sort((a, b) => b.compareTo(a));
-
-    final today = DateTime.now();
-    final todayDate     = DateTime(today.year, today.month, today.day);
-    final yesterdayDate = todayDate.subtract(const Duration(days: 1));
-
-    if (!activeDates.contains(todayDate) && !activeDates.contains(yesterdayDate)) {
-      streak = 0;
-      return;
-    }
-
-    int currentStreak = 0;
-    DateTime checkDate = activeDates.contains(todayDate) ? todayDate : yesterdayDate;
-
-    for (final date in activeDates) {
-      if (date.isAtSameMomentAs(checkDate)) {
-        currentStreak++;
-        checkDate = checkDate.subtract(const Duration(days: 1));
-      } else if (date.isBefore(checkDate)) {
-        break;
+    String uid = 'default_user';
+    try {
+      uid = FirebaseAuth.instance.currentUser?.uid ?? 'default_user';
+    } catch (_) {}
+    try {
+      if (GetIt.instance.isRegistered<QuestEngineService>()) {
+        GetIt.instance<QuestEngineService>().recordEvent(
+          QuestEvent(
+            type: QuestEventType.transactionListUpdated,
+            timestamp: DateTime.now(),
+          ),
+          uid,
+        );
       }
-    }
+    } catch (_) {}
 
-    streak = currentStreak;
-    _saveStats();
+    notifyListeners();
   }
 
   void _generateMilestoneFeed() {
     final List<SocialPostEntity> newFeed = [];
 
     if (transactions.isNotEmpty) {
-      newFeed.add(SocialPostEntity(
-        userName: 'Mithil (You)',
-        avatar: '🎉',
-        content: 'Logged my first transaction and started my financial journey!',
-        timeAgo: 'First Step',
-        isAchievement: true,
-        likes: 1,
-      ));
+      newFeed.add(
+        SocialPostEntity(
+          userName: 'Mithil (You)',
+          avatar: '🎉',
+          content:
+              'Logged my first transaction and started my financial journey!',
+          timeAgo: 'First Step',
+          isAchievement: true,
+          likes: 1,
+        ),
+      );
     }
 
     if (streak >= 3) {
-      newFeed.insert(0, SocialPostEntity(
-        userName: 'Mithil (You)',
-        avatar: '🔥',
-        content: 'Hit a $streak day tracking streak! Consistency is key.',
-        timeAgo: 'Recently',
-        isAchievement: true,
-        likes: 3,
-      ));
+      newFeed.insert(
+        0,
+        SocialPostEntity(
+          userName: 'Mithil (You)',
+          avatar: '🔥',
+          content: 'Hit a $streak day tracking streak! Consistency is key.',
+          timeAgo: 'Recently',
+          isAchievement: true,
+          likes: 3,
+        ),
+      );
     }
 
     if (level >= 2) {
-      newFeed.insert(0, SocialPostEntity(
-        userName: 'Mithil (You)',
-        avatar: '⭐',
-        content: 'Reached Level $level! Levelling up my money habits.',
-        timeAgo: 'Recently',
-        isAchievement: true,
-        likes: 5,
-      ));
+      newFeed.insert(
+        0,
+        SocialPostEntity(
+          userName: 'Mithil (You)',
+          avatar: '⭐',
+          content: 'Reached Level $level! Levelling up my money habits.',
+          timeAgo: 'Recently',
+          isAchievement: true,
+          likes: 5,
+        ),
+      );
     }
 
     final manualPosts = feedItems
@@ -561,23 +597,63 @@ class FingoState extends ChangeNotifier {
     syncWithTransactions(transactions);
   }
 
-  void completeQuest(String questId) {
-    final quest = quests.firstWhere((q) => q.id == questId);
-    if (quest.completed) return;
-
-    if (quest.id == 'q3') {
-      quest.progress++;
-      if (quest.progress >= quest.target) {
-        quest.completed = true;
-        _markQuestCompleted('q3');
-        awardXP(quest.xpReward);
-      }
-    } else {
-      quest.completed = true;
-      _markQuestCompleted(questId);
-      awardXP(quest.xpReward);
-    }
+  void updateActiveQuests(List<Quest> quests) {
+    activeQuests = List.from(quests);
     notifyListeners();
+  }
+
+  void updateNoSpendStreak(NoSpendStreakData data) {
+    noSpendStreak = data;
+    notifyListeners();
+  }
+
+  Future<void> addPendingQuestReward(QuestCompletionReward reward) async {
+    if (_awardedQuestIds.contains(reward.questId)) return;
+    _awardedQuestIds.add(reward.questId);
+    try {
+      await _storage.write(
+        key: _keyAwardedQuestIds,
+        value: jsonEncode(_awardedQuestIds.toList()),
+      );
+    } catch (_) {}
+
+    if (!pendingQuestRewards.any((r) => r.questId == reward.questId)) {
+      pendingQuestRewards.add(reward);
+      await _savePendingQuestRewards();
+      notifyListeners();
+    }
+  }
+
+  Future<void> removePendingQuestReward(String questId) async {
+    _awardedQuestIds.add(questId);
+    try {
+      await _storage.write(
+        key: _keyAwardedQuestIds,
+        value: jsonEncode(_awardedQuestIds.toList()),
+      );
+    } catch (_) {}
+    pendingQuestRewards.removeWhere((r) => r.questId == questId);
+    await _savePendingQuestRewards();
+    notifyListeners();
+  }
+
+  Future<void> clearAllPendingQuestRewards() async {
+    for (final r in pendingQuestRewards) {
+      _awardedQuestIds.add(r.questId);
+    }
+    try {
+      await _storage.write(
+        key: _keyAwardedQuestIds,
+        value: jsonEncode(_awardedQuestIds.toList()),
+      );
+    } catch (_) {}
+    pendingQuestRewards.clear();
+    await _savePendingQuestRewards();
+    notifyListeners();
+  }
+
+  void completeQuest(String questId) {
+    // Deprecated legacy method - quests now auto-complete in QuestEngineService
   }
 
   void addSocialPost(String content) {

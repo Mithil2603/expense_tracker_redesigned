@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/core.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/domain/entities/quest_completion_reward.dart';
 import 'di/injection_container.dart';
 import 'features/expenses/presentation/bloc/transaction_bloc.dart';
-import 'features/gamification/presentation/widgets/finny_placeholder_widget.dart';
 
 /// FingoApp — root application wrapper initializing configuration routing and design themes.
 class FingoApp extends StatelessWidget {
@@ -26,17 +26,7 @@ class FingoApp extends StatelessWidget {
             routerConfig: AppRouter.router,
             builder: (context, child) {
               return _RewardNavigator(
-                child: Stack(
-                  children: [
-                    // ignore: use_null_aware_elements
-                    if (child != null) child,
-                    const Positioned(
-                      right: 16,
-                      bottom: 110,
-                      child: FinnyPlaceholderWidget(),
-                    ),
-                  ],
-                ),
+                child: child ?? const SizedBox.shrink(),
               );
             },
           );
@@ -76,19 +66,22 @@ class _RewardNavigatorState extends State<_RewardNavigator> {
 
   void _onStateChanged() {
     final state = sl<FingoState>();
-    if (state.pendingRewards.isEmpty || _navigationScheduled) return;
-
-    // Sort: daily first, then weekly, then monthly
-    final sorted = [...state.pendingRewards]
-      ..sort((a, b) => a.index.compareTo(b.index));
-    final next = sorted.first;
+    if (_navigationScheduled) return;
+    if (state.pendingRewards.isEmpty && state.pendingQuestRewards.isEmpty) return;
 
     _navigationScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _navigationScheduled = false;
-      // GoRouter.of(context) is safe here because we're inside the MaterialApp.router builder
-      AppRouter.router.push('/reward/${next.name}');
+      if (state.pendingRewards.isNotEmpty) {
+        final sorted = [...state.pendingRewards]
+          ..sort((a, b) => a.index.compareTo(b.index));
+        final next = sorted.first;
+        AppRouter.router.push('/reward/${next.name}');
+      } else if (state.pendingQuestRewards.isNotEmpty) {
+        final questRewards = List<QuestCompletionReward>.from(state.pendingQuestRewards);
+        AppRouter.router.push('/reward/quest', extra: questRewards);
+      }
     });
   }
 

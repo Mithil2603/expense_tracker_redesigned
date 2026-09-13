@@ -100,4 +100,30 @@ void main() {
       expect(parsed, isNull);
     });
   });
+
+  group('SmsParser - New Category Mappings', () {
+    test('Should parse Jio recharge correctly as telecomAndRecharges', () {
+      const sender = 'HDFCBK';
+      const body = 'A/c XX1234 debited by INR 299.00 for payment to JIO on 14-Jun-26. Bal: INR 12,345.67.';
+
+      final parsed = SmsParser.parse(sender, body);
+
+      expect(parsed, isNotNull);
+      expect(parsed!.amount, equals(299.0));
+      expect(parsed.expenseCategory, equals(ExpenseCategory.telecomAndRecharges));
+      expect(parsed.title, equals('JIO'));
+    });
+
+    test('Should parse BPCL payment correctly as vehicleAndTransport', () {
+      const sender = 'HDFCBK';
+      const body = 'A/c XX1234 debited by INR 1500.00 for payment to BPCL on 14-Jun-26. Bal: INR 12,345.67.';
+
+      final parsed = SmsParser.parse(sender, body);
+
+      expect(parsed, isNotNull);
+      expect(parsed!.amount, equals(1500.0));
+      expect(parsed.expenseCategory, equals(ExpenseCategory.vehicleAndTransport));
+      expect(parsed.title, equals('BPCL'));
+    });
+  });
 }

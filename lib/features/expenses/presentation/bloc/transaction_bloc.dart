@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/fingo_state.dart';
+import '../../../../core/services/quest/quest_engine_service.dart';
+import '../../../../core/domain/entities/quest_event.dart';
 import '../../../../di/injection_container.dart';
 import '../../domain/usecases/watch_transactions.dart';
 import '../../domain/usecases/add_transaction.dart';
@@ -72,8 +74,6 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       result.fold(
         (failure) => emit(TransactionFailure(failure.message)),
         (_) {
-          // Increment Streak
-          sl<FingoState>().incrementStreak();
           // Add Diamonds
           sl<FingoState>().awardDiamonds(10);
           
@@ -82,9 +82,17 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
           if (event.transaction.detectionMeta == null) {
             sl<FingoState>().deductHealth(1);
           }
-          
-          // The real-time stream subscription started by WatchTransactionsEvent
-          // will automatically emit TransactionLoaded with the updated data.
+
+          if (sl.isRegistered<QuestEngineService>()) {
+            sl<QuestEngineService>().recordEvent(
+              QuestEvent(
+                type: QuestEventType.transactionAdded,
+                transaction: event.transaction,
+                timestamp: DateTime.now(),
+              ),
+              event.userId,
+            );
+          }
         },
       );
     });
@@ -94,10 +102,16 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       result.fold(
         (failure) => emit(TransactionFailure(failure.message)),
         (_) {
-          // If a pending auto-transaction is approved (isPending becomes false)
-          // We can also reward the streak and diamonds here, if desired, but 
-          // the user mainly mentioned "every manual entry" and "auto transactions".
-          // The real-time stream subscription automatically updates the list.
+          if (!event.transaction.isPending && sl.isRegistered<QuestEngineService>()) {
+            sl<QuestEngineService>().recordEvent(
+              QuestEvent(
+                type: QuestEventType.pendingReviewActioned,
+                transaction: event.transaction,
+                timestamp: DateTime.now(),
+              ),
+              event.userId,
+            );
+          }
         },
       );
     });
@@ -107,7 +121,16 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       result.fold(
         (failure) => emit(TransactionFailure(failure.message)),
         (_) {
-          // The real-time stream subscription automatically updates the list.
+          if (sl.isRegistered<QuestEngineService>()) {
+            // Find in current state if needed, or trigger list update
+            sl<QuestEngineService>().recordEvent(
+              QuestEvent(
+                type: QuestEventType.transactionListUpdated,
+                timestamp: DateTime.now(),
+              ),
+              event.userId,
+            );
+          }
         },
       );
     });

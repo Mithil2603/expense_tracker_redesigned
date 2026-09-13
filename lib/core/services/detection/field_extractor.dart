@@ -32,98 +32,168 @@ class FieldExtractor {
     String paymentMethod = 'other';
 
     if (matchResult.pattern != null) {
-      // We have a specific template match
+      // ── Template match ────────────────────────────────────────────────────
       final pattern = matchResult.pattern!;
       final match = matchResult.match;
 
-      // Extract amount
+      // Amount
       final amountGroupName = pattern.extractionMap['amount'];
       if (amountGroupName != null) {
-        final amountStr = match.namedGroup(amountGroupName);
+        final amountStr = _safeGroup(match, amountGroupName);
         if (amountStr != null) {
           amount = double.tryParse(amountStr.replaceAll(',', ''));
         }
       }
 
-      // Extract merchant
+      // Merchant — clean up trailing noise
       final merchantGroupName = pattern.extractionMap['merchant'];
       if (merchantGroupName != null) {
-        merchant = match.namedGroup(merchantGroupName)?.trim();
+        final raw = _safeGroup(match, merchantGroupName)?.trim();
+        merchant = _cleanMerchant(raw);
       }
 
-      // Extract account
+      // Account last 4 digits
       final acctGroupName = pattern.extractionMap['accountLast4'];
       if (acctGroupName != null) {
-        accountLast4 = match.namedGroup(acctGroupName)?.trim();
+        accountLast4 = _safeGroup(match, acctGroupName)?.trim();
       }
 
+      // UPI reference number from pattern (if regex has 'ref' group)
+      final refStr = _safeGroup(match, 'ref');
+      if (refStr != null && refStr.length >= 6) {
+        referenceNumber = refStr;
+      }
+
+      // Type from pattern
       type = pattern.type == 'credit' ? 'income' : 'expense';
       paymentMethod = pattern.paymentMethod ?? 'other';
+
+      // Override type if the pattern has a 'typeK' or 'typeC' capture group
+      // (used in generic patterns that detect dr/cr inline)
+      final typeGroup = _safeGroup(match, 'typeK') ?? _safeGroup(match, 'typeC');
+      if (typeGroup != null) {
+        type = typeGroup.toLowerCase() == 'cr' ? 'income' : 'expense';
+      }
     } else {
-      // Fallback regex match
+      // ── Generic fallback match ────────────────────────────────────────────
       final match = matchResult.match;
-      final amountStr = match.namedGroup('amount') ?? match.namedGroup('amount2');
+
+      // Try each named amount group in priority order
+      final amountStr = _safeGroup(match, 'amountA')
+          ?? _safeGroup(match, 'amountB')
+          ?? _safeGroup(match, 'amountC')
+          ?? _safeGroup(match, 'amountD')
+          ?? _safeGroup(match, 'amount')
+          ?? _safeGroup(match, 'amount2');
+
       if (amountStr != null) {
         amount = double.tryParse(amountStr.replaceAll(',', ''));
       }
-      
-      // Infer type from keywords
-      if (normalizedText.contains('credited') || normalizedText.contains('received')) {
+
+      // Type: check typeC group first (dr/cr), then text keywords
+      final typeC = _safeGroup(match, 'typeC');
+      if (typeC != null) {
+        type = typeC.toLowerCase() == 'cr' ? 'income' : 'expense';
+      } else if (normalizedText.contains('credited') ||
+          normalizedText.contains('received') ||
+          RegExp(r'\bcr\b').hasMatch(normalizedText)) {
         type = 'income';
       } else {
         type = 'expense';
       }
+
+      paymentMethod = 'other';
     }
 
-    // Must have a valid amount > 0 to proceed
-    if (amount == null || amount <= 0) {
-      return null;
-    }
+    // Must have a valid positive amount
+    if (amount == null || amount <= 0) return null;
 
-    // Attempt to extract reference number universally
-    final refRegex = RegExp(r'(?:ref|txn|imps|neft|upi ref)[^\d]*?(?<ref>\d{6,})', caseSensitive: false);
-    final refMatch = refRegex.firstMatch(normalizedText);
-    if (refMatch != null) {
-      referenceNumber = refMatch.namedGroup('ref');
+    // ── Universal reference number extraction ─────────────────────────────
+    if (referenceNumber == null) {
+      // Priority 1: UPI reference from UPI/DR/REF or UPI/CR/REF format
+      final upiRefRegex = RegExp(r'upi/(?:dr|cr)/(?<ref>\d{6,})', caseSensitive: false);
+      final upiRefMatch = upiRefRegex.firstMatch(normalizedText);
+      referenceNumber ??= upiRefMatch?.namedGroup('ref');
     }
-
-    // Extract date universally
-    DateTime? date;
-    
-    // Pattern 1: DD-MMM-YYYY (e.g., 21-JUN-2026)
-    final dateRegex1 = RegExp(r'(?<day>\d{1,2})-(?<month>[a-zA-Z]{3})-(?<year>\d{4})');
-    final match1 = dateRegex1.firstMatch(normalizedText);
-    if (match1 != null) {
-      final d = match1.namedGroup('day');
-      final m = match1.namedGroup('month');
-      final y = match1.namedGroup('year');
-      if (d != null && m != null && y != null) {
-        try {
-          date = DateFormat('dd-MMM-yyyy').parse('$d-$m-$y');
-        } catch (_) {}
+    if (referenceNumber == null) {
+      // Priority 2: labeled reference number
+      final labeledRefRegex = RegExp(
+        r'(?:ref(?:erence)?(?:\s*no\.?)?|txn(?:\s*id)?|imps(?:\s*ref)?|neft(?:\s*ref)?|upi\s*ref)[^a-z0-9]*(?<ref>\d{6,})',
+        caseSensitive: false,
+      );
+      final labeledMatch = labeledRefRegex.firstMatch(normalizedText);
+      if (labeledMatch != null) {
+        referenceNumber = labeledMatch.namedGroup('ref');
       }
     }
-    
-    // Pattern 2: DD/MM/YYYY
+
+    // ── Universal merchant extraction fallback ─────────────────────────────
+    // If template didn't give us a merchant, try the UPI reference line pattern
+    if (merchant == null || merchant.isEmpty) {
+      // "UPI/DR/123456789/Merchant Name" — merchant is the last segment
+      final upiMerchantRegex = RegExp(
+        r'upi/(?:dr|cr)/\d+/(?<merchant>[^/\n\r\s][^/\n\r]{1,50}?)(?=\s*(?:balance|bal|fraud|avl|$))',
+        caseSensitive: false,
+      );
+      final upiMerchantMatch = upiMerchantRegex.firstMatch(normalizedText);
+      if (upiMerchantMatch != null) {
+        merchant = _cleanMerchant(upiMerchantMatch.namedGroup('merchant'));
+      }
+    }
+
+    // ── Universal date extraction ─────────────────────────────────────────
+    DateTime? date;
+
+    // Pattern 1: DD-MMM-YYYY  e.g. 02-JUL-2026 or 02-Jul-26
+    final dateRegex1 = RegExp(r'(?<day>\d{1,2})-(?<month>[a-zA-Z]{3})-(?<year>\d{2,4})');
+    final match1 = dateRegex1.firstMatch(normalizedText);
+    if (match1 != null) {
+      final d = match1.namedGroup('day')!;
+      final m = match1.namedGroup('month')!;
+      var y = match1.namedGroup('year')!;
+      if (y.length == 2) y = '20$y';
+      try { date = DateFormat('dd-MMM-yyyy').parse('$d-$m-$y'); } catch (_) {}
+    }
+
+    // Pattern 2: DD/MM/YYYY or DD/MM/YY
     if (date == null) {
       final dateRegex2 = RegExp(r'(?<day>\d{1,2})/(?<month>\d{1,2})/(?<year>\d{2,4})');
       final match2 = dateRegex2.firstMatch(normalizedText);
       if (match2 != null) {
-        final d = match2.namedGroup('day');
-        final m = match2.namedGroup('month');
-        final y = match2.namedGroup('year');
-        if (d != null && m != null && y != null) {
-          try {
-            final yStr = y.length == 2 ? '20$y' : y;
-            date = DateFormat('dd/MM/yyyy').parse('$d/$m/$yStr');
-          } catch (_) {}
-        }
+        final d = match2.namedGroup('day')!;
+        final m = match2.namedGroup('month')!;
+        var y = match2.namedGroup('year')!;
+        if (y.length == 2) y = '20$y';
+        try { date = DateFormat('dd/MM/yyyy').parse('$d/$m/$y'); } catch (_) {}
       }
     }
-    
-    if (date == null && normalizedText.contains('today')) {
-      date = DateTime.now();
+
+    // Pattern 3: DD-MM-YYYY  e.g. 02-07-2026
+    if (date == null) {
+      final dateRegex3 = RegExp(r'(?<day>\d{2})-(?<month>\d{2})-(?<year>\d{4})');
+      final match3 = dateRegex3.firstMatch(normalizedText);
+      if (match3 != null) {
+        final d = match3.namedGroup('day')!;
+        final m = match3.namedGroup('month')!;
+        final y = match3.namedGroup('year')!;
+        try { date = DateFormat('dd-MM-yyyy').parse('$d-$m-$y'); } catch (_) {}
+      }
     }
+
+    // Pattern 4: SBI compact — DDMonYY (no separators), e.g. "17Jan23" or "02Jul26"
+    if (date == null) {
+      final dateRegex4 = RegExp(r'(?<day>\d{2})(?<month>[a-zA-Z]{3})(?<year>\d{2,4})');
+      final match4 = dateRegex4.firstMatch(normalizedText);
+      if (match4 != null) {
+        final d = match4.namedGroup('day')!;
+        final m = match4.namedGroup('month')!;
+        var y = match4.namedGroup('year')!;
+        if (y.length == 2) y = '20$y';
+        try { date = DateFormat('ddMMMyyyy').parse('$d$m$y'); } catch (_) {}
+      }
+    }
+
+    date ??= DateTime.now();
 
     return ExtractedFields(
       amount: amount,
@@ -134,5 +204,26 @@ class FieldExtractor {
       paymentMethod: paymentMethod,
       date: date,
     );
+  }
+
+  /// Safely retrieves a named group from a RegExpMatch without throwing.
+  static String? _safeGroup(RegExpMatch match, String name) {
+    try { return match.namedGroup(name); } catch (_) { return null; }
+  }
+
+  /// Cleans a raw merchant string: removes trailing noise words, trims punctuation.
+  static String? _cleanMerchant(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    // Remove trailing balance/fraud/ref keywords and their surrounding whitespace
+    String cleaned = raw
+        .replaceAll(RegExp(r'\s*(balance|bal|avl|fraud|ref|on\s+\d|\.?\s*$)', caseSensitive: false), '')
+        .replaceAll(RegExp(r'[.,:;\-]+$'), '')
+        .trim();
+    // Title-case the merchant name
+    if (cleaned.isEmpty) return null;
+    return cleaned
+        .split(' ')
+        .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '')
+        .join(' ');
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import '../core.dart';
 import '../../features/dashboard/presentation/pages/dashboard_screen.dart';
@@ -6,14 +7,17 @@ import '../../features/community/presentation/pages/community_hub_screen.dart';
 import '../../features/analytics/presentation/pages/analytics_screen.dart';
 import '../../features/profile/presentation/pages/profile_screen.dart';
 import '../../features/expenses/presentation/pages/transaction_form_screen.dart';
+import '../../features/expenses/presentation/pages/pending_transaction_review_screen.dart';
 import '../../features/expenses/domain/entities/transaction_entity.dart';
 import '../../features/auth/presentation/pages/auth_screen.dart';
+import '../../features/onboarding/presentation/pages/notification_onboarding_screen.dart';
 import 'widgets/scaffold_with_navigation.dart';
 import 'pages/route_error_screen.dart';
 import '../../features/gamification/presentation/pages/health_refill_screen.dart';
 import '../../features/gamification/presentation/pages/finny_reward_screen.dart';
-
+import '../domain/entities/quest_completion_reward.dart';
 import '../../di/injection_container.dart';
+import '../../features/ipo/presentation/pages/ipo_hub_screen.dart';
 
 // Key for root navigator
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -30,22 +34,42 @@ abstract final class AppRouter {
     initialLocation: AppRoutes.dashboardPath,
     refreshListenable: sl<AuthNotifier>(),
     errorBuilder: (context, state) => const RouteErrorScreen(),
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final authNotifier = sl<AuthNotifier>();
       final loggedIn = authNotifier.isAuthenticated;
-      final loggingIn = state.matchedLocation == AppRoutes.authPath;
+      final currentPath = state.matchedLocation;
+      final loggingIn = currentPath == AppRoutes.authPath;
+      final onOnboarding = currentPath == AppRoutes.notificationOnboardingPath;
 
+      // ─── Not logged in ────────────────────────────────────────────────────
       if (!loggedIn) {
-        // If not logged in and not already on the auth page, redirect to auth page
         return loggingIn ? null : AppRoutes.authPath;
       }
 
-      // If logged in and trying to access the auth page, redirect to dashboard
+      // ─── Logged in + on auth screen → go to dashboard ────────────────────
       if (loggingIn) {
-        return AppRoutes.dashboardPath;
+        // Before going to dashboard, check if onboarding is needed
+        final needsOnboarding = await _needsNotificationOnboarding();
+        return needsOnboarding
+            ? AppRoutes.notificationOnboardingPath
+            : AppRoutes.dashboardPath;
       }
 
-      // No redirect needed
+      // ─── Logged in + onboarding already shown → skip onboarding ──────────
+      if (onOnboarding) {
+        // Allow onboarding screen to show
+        return null;
+      }
+
+      // ─── Logged in + going to dashboard → check onboarding ───────────────
+      if (currentPath == AppRoutes.dashboardPath) {
+        final needsOnboarding = await _needsNotificationOnboarding();
+        if (needsOnboarding) {
+          return AppRoutes.notificationOnboardingPath;
+        }
+      }
+
+      // ─── No redirect needed ───────────────────────────────────────────────
       return null;
     },
 
@@ -130,7 +154,24 @@ abstract final class AppRouter {
         name: AppRoutes.authName,
         builder: (context, state) => const AuthScreen(),
       ),
-      // ─── Standalone Gamification Routes ──────────────────────────────────────────────
+      // ─── Standalone Onboarding Route ─────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.notificationOnboardingPath,
+        name: AppRoutes.notificationOnboardingName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationOnboardingScreen(),
+      ),
+      // ─── Pending Transaction Review Route ────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.pendingReviewPath,
+        name: AppRoutes.pendingReviewName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final transactionId = state.pathParameters['transactionId'] ?? '';
+          return PendingTransactionReviewScreen(transactionId: transactionId);
+        },
+      ),
+      // ─── Standalone Gamification Routes ──────────────────────────────────────
       GoRoute(
         path: '/health-refill',
         name: 'health-refill',
@@ -141,6 +182,10 @@ abstract final class AppRouter {
         name: 'reward',
         builder: (context, state) {
           final typeName = state.pathParameters['type'] ?? 'daily';
+          if (typeName == 'quest' && state.extra != null) {
+            final questRewards = state.extra as List<QuestCompletionReward>;
+            return FinnyRewardScreen(questRewards: questRewards);
+          }
           final rewardType = RewardType.values.firstWhere(
             (r) => r.name == typeName,
             orElse: () => RewardType.daily,
@@ -148,6 +193,28 @@ abstract final class AppRouter {
           return FinnyRewardScreen(rewardType: rewardType);
         },
       ),
+      // ─── IPO Capital Hub & ASBA Engine Route ──────────────────────────────────
+      GoRoute(
+        path: AppRoutes.ipoHubPath,
+        name: AppRoutes.ipoHubName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final userId = sl<AuthNotifier>().user?.uid ?? 'test-user-id';
+          return IpoHubScreen(userId: userId);
+        },
+      ),
     ],
   );
+
+  /// Check whether the notification onboarding screen should be shown.
+  /// Returns true if the onboarding flag has NOT been stored yet.
+  static Future<bool> _needsNotificationOnboarding() async {
+    try {
+      const storage = FlutterSecureStorage();
+      final val = await storage.read(key: 'fingo_notification_onboarding_shown');
+      return val != 'true';
+    } catch (_) {
+      return false; // On error, skip onboarding to avoid blocking the user
+    }
+  }
 }

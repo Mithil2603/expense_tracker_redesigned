@@ -344,10 +344,11 @@ class GenerateInsights {
           confidence = 'Medium';
         } else if (category == ExpenseCategory.subscriptions ||
             category == ExpenseCategory.gamingAndDigital ||
-            category == ExpenseCategory.entertainmentAndLeisure) {
+            category == ExpenseCategory.entertainmentAndLeisure ||
+            category == ExpenseCategory.telecomAndRecharges) {
           if (currentAmount > 0.0 && (report.totalIncome == 0 || incomeRatio > 0.01)) {
             isLeak = true;
-            reason = 'Detected recurring subscription or digital/entertainment spending in ${category.displayName}.';
+            reason = 'Detected recurring subscription, telecom, or digital/entertainment spending in ${category.displayName}.';
             confidence = 'Low';
           }
         }
@@ -369,7 +370,8 @@ class GenerateInsights {
             tip = 'Apply the 24-hour rule before checking out. Add items to a wishlist first.';
             break;
           case ExpenseCategory.subscriptions:
-            tip = 'Review app store subscriptions and cancel any platforms you haven\'t used this week.';
+          case ExpenseCategory.telecomAndRecharges:
+            tip = 'Review app store subscriptions and telecom plans, and downgrade or cancel unused ones.';
             break;
           case ExpenseCategory.entertainmentAndLeisure:
           case ExpenseCategory.gamingAndDigital:

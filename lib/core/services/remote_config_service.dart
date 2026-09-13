@@ -9,11 +9,12 @@ import 'detection/models/detection_pattern.dart';
 import '../../features/expenses/domain/entities/transaction_entity.dart';
 
 class RemoteConfigService {
-  final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
+  FirebaseRemoteConfig? _remoteConfig;
 
   Future<void> init() async {
     try {
-      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
+      _remoteConfig = FirebaseRemoteConfig.instance;
+      await _remoteConfig!.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
         minimumFetchInterval: const Duration(hours: 1),
       ));
@@ -22,15 +23,15 @@ class RemoteConfigService {
       await _setDefaultsFromAssets();
 
       // 2. Fetch and activate remote configs
-      await _remoteConfig.fetchAndActivate();
+      await _remoteConfig!.fetchAndActivate();
 
       // 3. Apply the configs to the respective classes
       _applyConfigs();
 
       AppLogger.i('RemoteConfigService initialized and configs applied.');
-    } catch (e) {
-      AppLogger.e('Failed to initialize RemoteConfigService: $e');
-      // If network fails, we just apply whatever defaults/local values are present
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to initialize RemoteConfigService: $e', e, stackTrace);
+      // If network/Firebase fails, we just apply whatever defaults/local values are present
       _applyConfigs();
     }
   }
@@ -41,28 +42,34 @@ class RemoteConfigService {
       final categoriesStr = await rootBundle.loadString('assets/config/category_mappings.json');
       final exclusionsStr = await rootBundle.loadString('assets/config/exclusion_rules.json');
 
-      await _remoteConfig.setDefaults({
-        'detection_patterns': patternsStr,
-        'category_mappings': categoriesStr,
-        'exclusion_rules': exclusionsStr,
-      });
-    } catch (e) {
-      AppLogger.e('Failed to load default configs from assets: $e');
+      if (_remoteConfig != null) {
+        await _remoteConfig!.setDefaults({
+          'detection_patterns': patternsStr,
+          'category_mappings': categoriesStr,
+          'exclusion_rules': exclusionsStr,
+        });
+      }
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to load default configs from assets: $e', e, stackTrace);
     }
   }
 
   void _applyConfigs() {
+    if (_remoteConfig == null) {
+      AppLogger.w('RemoteConfigService: Firebase Remote Config is unavailable. Using local hardcoded/default configs.');
+      return;
+    }
     try {
       _applyPatterns();
       _applyCategories();
       _applyExclusions();
-    } catch (e) {
-      AppLogger.e('Error applying remote configs: $e');
+    } catch (e, stackTrace) {
+      AppLogger.e('Error applying remote configs: $e', e, stackTrace);
     }
   }
 
   void _applyPatterns() {
-    final jsonStr = _remoteConfig.getString('detection_patterns');
+    final jsonStr = _remoteConfig!.getString('detection_patterns');
     if (jsonStr.isEmpty) return;
     
     final List<dynamic> jsonList = jsonDecode(jsonStr);
@@ -90,7 +97,7 @@ class RemoteConfigService {
   }
 
   void _applyCategories() {
-    final jsonStr = _remoteConfig.getString('category_mappings');
+    final jsonStr = _remoteConfig!.getString('category_mappings');
     if (jsonStr.isEmpty) return;
 
     final map = jsonDecode(jsonStr) as Map<String, dynamic>;
@@ -134,7 +141,7 @@ class RemoteConfigService {
   }
 
   void _applyExclusions() {
-    final jsonStr = _remoteConfig.getString('exclusion_rules');
+    final jsonStr = _remoteConfig!.getString('exclusion_rules');
     if (jsonStr.isEmpty) return;
 
     final map = jsonDecode(jsonStr) as Map<String, dynamic>;

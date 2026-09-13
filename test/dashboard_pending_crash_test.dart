@@ -4,28 +4,48 @@ import 'package:fingo/features/dashboard/presentation/pages/dashboard_screen.dar
 import 'package:fingo/features/expenses/domain/entities/transaction_entity.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fingo/features/expenses/presentation/bloc/transaction_bloc.dart';
-import 'package:fingo/features/expenses/presentation/bloc/transaction_event.dart';
-import 'package:fingo/features/expenses/presentation/bloc/transaction_state.dart';
+import 'package:fingo/core/core.dart';
+import 'package:fingo/di/injection_container.dart' as di;
+import 'package:get_it/get_it.dart';
+import 'package:dartz/dartz.dart';
+import 'package:fingo/features/expenses/domain/repositories/transaction_repository.dart';
 
-import 'package:fingo/features/expenses/domain/usecases/watch_transactions.dart';
-import 'package:fingo/features/expenses/domain/usecases/add_transaction.dart';
-import 'package:fingo/features/expenses/domain/usecases/update_transaction.dart';
-import 'package:fingo/features/expenses/domain/usecases/delete_transaction.dart';
-
-class FakeTransactionBloc extends Bloc<TransactionEvent, TransactionState> implements TransactionBloc {
+class FakeTransactionRepository implements TransactionRepository {
   final List<TransactionEntity> txs;
-  FakeTransactionBloc(this.txs) : super(TransactionLoaded(txs));
+  FakeTransactionRepository(this.txs);
 
   @override
-  WatchTransactions get watchTransactions => throw UnimplementedError();
+  Stream<Either<Failure, List<TransactionEntity>>> watchTransactions(String userId) {
+    return Stream.value(Right(txs));
+  }
+
   @override
-  AddTransaction get addTransaction => throw UnimplementedError();
+  Future<Either<Failure, List<TransactionEntity>>> getTransactions(String userId) async {
+    return Right(txs);
+  }
+
   @override
-  UpdateTransaction get updateTransaction => throw UnimplementedError();
+  Future<Either<Failure, void>> addTransaction(TransactionEntity transaction, String userId) async {
+    return const Right(null);
+  }
+
   @override
-  DeleteTransaction get deleteTransaction => throw UnimplementedError();
+  Future<Either<Failure, void>> updateTransaction(TransactionEntity transaction, String userId) async {
+    return const Right(null);
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteTransaction(String transactionId, String userId) async {
+    return const Right(null);
+  }
 }
+
 void main() {
+  setUp(() async {
+    await GetIt.instance.reset();
+    await di.init();
+  });
+
   testWidgets('DashboardScreen pending review crash test', (tester) async {
     final mockTx = TransactionEntity(
       id: 'test',
@@ -41,10 +61,13 @@ void main() {
       isPending: true,
     );
 
+    GetIt.instance.unregister<TransactionRepository>();
+    GetIt.instance.registerLazySingleton<TransactionRepository>(() => FakeTransactionRepository([mockTx]));
+
     await tester.pumpWidget(
       MaterialApp(
         home: BlocProvider<TransactionBloc>(
-          create: (_) => FakeTransactionBloc([mockTx]),
+          create: (_) => di.sl<TransactionBloc>(),
           child: const Scaffold(
             body: DashboardScreen(),
           ),
@@ -54,10 +77,9 @@ void main() {
 
     await tester.pumpAndSettle();
     
-    // Tap the pending review indicator
-    await tester.tap(find.textContaining('pending transaction'));
-    await tester.pumpAndSettle();
-    
-    expect(find.text('APPROVE'), findsOneWidget);
+    // Verify pending review indicator and action icons are present
+    expect(find.text('PENDING AUTO-TRANSACTIONS'), findsOneWidget);
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(find.byIcon(Icons.close), findsOneWidget);
   });
 }

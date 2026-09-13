@@ -101,6 +101,12 @@ class TransactionModel extends TransactionEntity {
             if (lower.contains('loan') || lower.contains('emi') || lower.contains('interest') || lower.contains('finance') || lower.contains('fee')) {
               return ExpenseCategory.financialServices;
             }
+            if (lower.contains('vehicle') || lower.contains('car') || lower.contains('bike') || lower.contains('petrol') || lower.contains('diesel') || lower.contains('fuel') || lower.contains('service') || lower.contains('insurance')) {
+              return ExpenseCategory.vehicleAndTransport;
+            }
+            if (lower.contains('recharge') || lower.contains('jio') || lower.contains('airtel') || lower.contains('broadband') || lower.contains('telecom') || lower.contains('subscription') || lower.contains('netflix')) {
+              return ExpenseCategory.telecomAndRecharges;
+            }
             return ExpenseCategory.other;
           },
         );
