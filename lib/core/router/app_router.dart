@@ -14,8 +14,6 @@ import '../../features/onboarding/presentation/pages/notification_onboarding_scr
 import 'widgets/scaffold_with_navigation.dart';
 import 'pages/route_error_screen.dart';
 import '../../features/gamification/presentation/pages/health_refill_screen.dart';
-import '../../features/gamification/presentation/pages/finny_reward_screen.dart';
-import '../domain/entities/quest_completion_reward.dart';
 import '../../di/injection_container.dart';
 import '../../features/ipo/presentation/pages/ipo_hub_screen.dart';
 
@@ -177,30 +175,24 @@ abstract final class AppRouter {
         name: 'health-refill',
         builder: (context, state) => const HealthRefillScreen(),
       ),
-      GoRoute(
-        path: '/reward/:type',
-        name: 'reward',
-        builder: (context, state) {
-          final typeName = state.pathParameters['type'] ?? 'daily';
-          if (typeName == 'quest' && state.extra != null) {
-            final questRewards = state.extra as List<QuestCompletionReward>;
-            return FinnyRewardScreen(questRewards: questRewards);
-          }
-          final rewardType = RewardType.values.firstWhere(
-            (r) => r.name == typeName,
-            orElse: () => RewardType.daily,
-          );
-          return FinnyRewardScreen(rewardType: rewardType);
-        },
-      ),
       // ─── IPO Capital Hub & ASBA Engine Route ──────────────────────────────────
       GoRoute(
         path: AppRoutes.ipoHubPath,
         name: AppRoutes.ipoHubName,
         parentNavigatorKey: _rootNavigatorKey,
+        redirect: (context, state) {
+          final user = sl<AuthNotifier>().user;
+          if (user == null) {
+            return AppRoutes.authPath;
+          }
+          return null;
+        },
         builder: (context, state) {
-          final userId = sl<AuthNotifier>().user?.uid ?? 'test-user-id';
-          return IpoHubScreen(userId: userId);
+          final user = sl<AuthNotifier>().user;
+          if (user == null) {
+            return const SizedBox.shrink();
+          }
+          return IpoHubScreen(userId: user.uid);
         },
       ),
     ],

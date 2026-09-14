@@ -65,8 +65,16 @@ void _notificationCallback(NotificationEvent evt) async {
   await BackgroundFileLogger.log('_notificationCallback entered. title: "${evt.title}", SendPort found: $sendPortFound');
 
   if (send != null) {
-    send.send(evt);
-    return;
+    try {
+      send.send(<String, dynamic>{
+        'packageName': evt.packageName,
+        'title': evt.title,
+        'text': evt.text,
+      });
+      return;
+    } catch (e) {
+      await BackgroundFileLogger.log('Error sending to SendPort: $e. Falling back to background processing.');
+    }
   }
 
   // ── BACKGROUND PATH ──────────────────────────────────────────────────────
@@ -246,8 +254,21 @@ class NotificationSyncService {
       IsolateNameServer.registerPortWithName(_port.sendPort, '_notification_listener_');
 
       _subscription = _port.listen((dynamic message) async {
-        if (message is NotificationEvent) {
-          await _processIncomingNotification(message);
+        if (message is Map) {
+          final packageName = (message['packageName'] as String?) ?? '';
+          final title = (message['title'] as String?) ?? '';
+          final text = (message['text'] as String?) ?? '';
+          await _processIncomingNotification(
+            packageName: packageName,
+            title: title,
+            text: text,
+          );
+        } else if (message is NotificationEvent) {
+          await _processIncomingNotification(
+            packageName: message.packageName ?? '',
+            title: message.title ?? '',
+            text: message.text ?? '',
+          );
         }
       });
 
@@ -301,11 +322,12 @@ class NotificationSyncService {
   // This runs only when the app IS in the foreground (fast path).
 
   /// Process the incoming notification event locally and securely
-  Future<void> _processIncomingNotification(NotificationEvent evt) async {
+  Future<void> _processIncomingNotification({
+    required String packageName,
+    required String title,
+    required String text,
+  }) async {
     AppLogger.i('[DEBUG_FLOW] 4. ENTERED _processIncomingNotification()');
-    final packageName = evt.packageName ?? '';
-    final title = evt.title ?? '';
-    final text = evt.text ?? '';
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {

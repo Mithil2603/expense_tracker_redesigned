@@ -38,25 +38,30 @@ class RecyclingVelocityMeterWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.autorenew_rounded,
-                    size: 18,
-                    color: const Color(0xFF38BDF8),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'RECYCLING VELOCITY METER',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.1,
-                      color: subColor,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.autorenew_rounded,
+                      size: 18,
+                      color: Color(0xFF38BDF8),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'RECYCLING VELOCITY METER',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1,
+                          color: subColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -113,10 +118,15 @@ class RecyclingVelocityMeterWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${summary.activeBidsCount} active ASBA bids currently frozen',
-                style: TextStyle(fontSize: 11, color: subColor),
+              Expanded(
+                child: Text(
+                  '${summary.activeBidsCount} active ASBA bids currently frozen',
+                  style: TextStyle(fontSize: 11, color: subColor),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Target: 3.0x turnover',
                 style: TextStyle(fontSize: 11, color: subColor),
@@ -161,35 +171,40 @@ class WorkingCapitalMatrixWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ACTIVE WORKING POOL',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.1,
-                      color: subColor,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ACTIVE WORKING POOL',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.1,
+                        color: subColor,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppFormatters.formatCurrency(summary.activeWorkingPool),
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                      color: textColor,
+                    const SizedBox(height: 4),
+                    Text(
+                      AppFormatters.formatCurrency(summary.activeWorkingPool),
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                        color: textColor,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               OutlinedButton.icon(
                 onPressed: onAddCapital,
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('CAPITAL'),
                 style: OutlinedButton.styleFrom(
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
                   side: BorderSide(color: borderColor),
                   shape: RoundedRectangleBorder(
@@ -520,13 +535,20 @@ class IpoBidCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Debited: ${AppFormatters.formatCurrency(trade?.debitAmount ?? application.bidAmount)}',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF3B82F6)),
+                Expanded(
+                  child: Text(
+                    'Debited: ${AppFormatters.formatCurrency(trade?.debitAmount ?? application.bidAmount)}',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF3B82F6)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: onSell,
                   style: ElevatedButton.styleFrom(
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     backgroundColor: const Color(0xFF1E3A8A), // Navy
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

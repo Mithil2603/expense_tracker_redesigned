@@ -641,6 +641,8 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 backgroundColor: const Color(0xFF1E293B),
                 foregroundColor: Colors.white,
               ),

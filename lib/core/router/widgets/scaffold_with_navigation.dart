@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core.dart';
 
-class ScaffoldWithNavigation extends StatelessWidget {
+class ScaffoldWithNavigation extends StatefulWidget {
   final Widget child;
 
   const ScaffoldWithNavigation({
     super.key,
     required this.child,
   });
+
+  @override
+  State<ScaffoldWithNavigation> createState() => _ScaffoldWithNavigationState();
+}
+
+class _ScaffoldWithNavigationState extends State<ScaffoldWithNavigation> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +25,7 @@ class ScaffoldWithNavigation extends StatelessWidget {
       if (location.startsWith(AppRoutes.dashboardPath)) return 0;
       if (location.startsWith(AppRoutes.questsPath)) return 1;
       if (location.startsWith(AppRoutes.analyticsPath)) return 2;
-      if (location.startsWith(AppRoutes.profilePath)) return 3;
-      return 0;
+      return -1;
     }
 
     void onItemTapped(int index) {
@@ -34,7 +40,7 @@ class ScaffoldWithNavigation extends StatelessWidget {
           context.goNamed(AppRoutes.analyticsName);
           break;
         case 3:
-          context.goNamed(AppRoutes.profileName);
+          _scaffoldKey.currentState?.openEndDrawer();
           break;
       }
     }
@@ -46,9 +52,11 @@ class ScaffoldWithNavigation extends StatelessWidget {
         : AppColors.outlineDark;
 
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: const _AppEndDrawer(),
       body: Stack(
         children: [
-          child,
+          widget.child,
           Positioned(
             left: 16,
             right: 16,
@@ -83,12 +91,14 @@ class ScaffoldWithNavigation extends StatelessWidget {
                       // Symmetrical Left side of the FAB
                       NavBarItem(
                         icon: Icons.home_rounded,
+                        label: 'Home',
                         isSelected: calculateSelectedIndex() == 0,
                         onTap: () => onItemTapped(0),
                         activeColor: AppColors.secondary,
                       ),
                       NavBarItem(
                         icon: Icons.emoji_events_rounded,
+                        label: 'Quests',
                         isSelected: calculateSelectedIndex() == 1,
                         onTap: () => onItemTapped(1),
                         activeColor: AppColors.accent,
@@ -100,13 +110,15 @@ class ScaffoldWithNavigation extends StatelessWidget {
                       // Symmetrical Right side of the FAB
                       NavBarItem(
                         icon: Icons.bar_chart_rounded,
+                        label: 'Analytics',
                         isSelected: calculateSelectedIndex() == 2,
                         onTap: () => onItemTapped(2),
                         activeColor: AppColors.info,
                       ),
                       NavBarItem(
-                        icon: Icons.person_rounded,
-                        isSelected: calculateSelectedIndex() == 3,
+                        icon: Icons.menu_rounded,
+                        label: 'Menu',
+                        isSelected: false,
                         onTap: () => onItemTapped(3),
                         activeColor: AppColors.success,
                       ),
@@ -197,6 +209,7 @@ class NavBarItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final Color activeColor;
+  final String? label;
 
   const NavBarItem({
     super.key,
@@ -204,6 +217,7 @@ class NavBarItem extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.activeColor,
+    this.label,
   });
 
   @override
@@ -214,19 +228,141 @@ class NavBarItem extends StatelessWidget {
         : AppColors.textTertiary;
 
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: AnimatedScale(
-          scale: isSelected ? 1.15 : 1.0,
-          duration: const Duration(milliseconds: 150),
-          child: Center(
-            child: Icon(
-              icon,
-              color: isSelected ? activeColor : unselectedColor,
-              size: AppSizes.iconMD + 4,
+      child: Tooltip(
+        message: label ?? '',
+        child: Semantics(
+          label: label,
+          button: true,
+          selected: isSelected,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: AnimatedScale(
+              scale: isSelected ? 1.15 : 1.0,
+              duration: const Duration(milliseconds: 150),
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: isSelected ? activeColor : unselectedColor,
+                  size: AppSizes.iconMD + 4,
+                ),
+              ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppEndDrawer extends StatelessWidget {
+  const _AppEndDrawer();
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final drawerBg = isLight ? Colors.white : AppColors.surfaceDark;
+    final outlineColor = isLight ? AppColors.outlineLight : AppColors.outlineDark;
+
+    return Drawer(
+      backgroundColor: drawerBg,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drawer Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Menu',
+                    style: AppTextStyles.h2.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.of(context).pop(),
+                    tooltip: 'Close Menu',
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+              height: 1,
+              color: outlineColor,
+            ),
+            const SizedBox(height: 16),
+
+            // Profile item
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.goNamed(AppRoutes.profileName);
+                },
+                leading: Container(
+                  padding: const EdgeInsets.all(AppSizes.s8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
+                ),
+                title: Text('Profile', style: AppTextStyles.labelLG),
+                subtitle: Text('Account, stats & settings', style: AppTextStyles.bodySM),
+                trailing: const Icon(Icons.chevron_right_rounded),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // IPO Capital Hub item
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.pushNamed(AppRoutes.ipoHubName);
+                },
+                leading: Container(
+                  padding: const EdgeInsets.all(AppSizes.s8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                    border: Border.all(
+                      color: const Color(0xFF38BDF8).withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.account_balance_rounded,
+                    color: Color(0xFF38BDF8),
+                    size: 22,
+                  ),
+                ),
+                title: Text('IPO Capital Hub', style: AppTextStyles.labelLG),
+                subtitle: Text('ASBA engine & pooled capital', style: AppTextStyles.bodySM),
+                trailing: const Icon(Icons.chevron_right_rounded),
+              ),
+            ),
+          ],
         ),
       ),
     );

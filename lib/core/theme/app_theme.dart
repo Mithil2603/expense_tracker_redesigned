@@ -169,7 +169,7 @@ abstract final class AppTheme {
           foregroundColor: Colors.white,
           disabledBackgroundColor: outlineColor,
           disabledForegroundColor: textTertiary,
-          minimumSize: const Size(double.infinity, AppSizes.buttonHeightLG),
+          minimumSize: const Size(64, AppSizes.buttonHeightLG),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.radiusMD),
           ),
@@ -187,7 +187,7 @@ abstract final class AppTheme {
             color: AppColors.primary,
             width: AppSizes.borderThick,
           ),
-          minimumSize: const Size(double.infinity, AppSizes.buttonHeightLG),
+          minimumSize: const Size(64, AppSizes.buttonHeightLG),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.radiusMD),
           ),
