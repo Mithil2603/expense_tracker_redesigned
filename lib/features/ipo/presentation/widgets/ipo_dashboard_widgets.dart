@@ -14,10 +14,10 @@ class RecyclingVelocityMeterWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1E232B) : const Color(0xFFF8FAFC);
-    final borderColor = isDark ? const Color(0xFF333B47) : const Color(0xFFE2E8F0);
+    final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final borderColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
     final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final subColor = isDark ? const Color(0xFF64748B) : const Color(0xFF64748B);
 
     final velocity = summary.recyclingVelocityRatio;
     final basePoolFormatted = AppFormatters.formatCurrency(
@@ -29,7 +29,7 @@ class RecyclingVelocityMeterWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -38,52 +38,41 @@ class RecyclingVelocityMeterWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.autorenew_rounded,
-                      size: 18,
-                      color: Color(0xFF38BDF8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.autorenew_rounded,
+                    size: 16,
+                    color: Color(0xFF3B82F6),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'RECYCLING VELOCITY',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                      color: subColor,
                     ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        'RECYCLING VELOCITY METER',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                          color: subColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: velocity >= 1.5
-                      ? const Color(0xFF059669).withValues(alpha: 0.15)
-                      : const Color(0xFF0284C7).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: velocity >= 1.5
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFF38BDF8),
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                     width: 0.8,
                   ),
                 ),
                 child: Text(
-                  '${velocity.toStringAsFixed(2)}x Velocity',
-                  style: TextStyle(
+                  '${velocity.toStringAsFixed(2)}x',
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: velocity >= 1.5
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFF38BDF8),
+                    color: Color(0xFF3B82F6),
                   ),
                 ),
               ),
@@ -100,38 +89,20 @@ class RecyclingVelocityMeterWidget extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: (velocity / 5.0).clamp(0.05, 1.0),
-              minHeight: 8,
-              backgroundColor: isDark ? const Color(0xFF2E3846) : const Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                velocity >= 2.0
-                    ? const Color(0xFF10B981) // High velocity green
-                    : velocity >= 1.0
-                        ? const Color(0xFF38BDF8) // Good velocity blue
-                        : const Color(0xFFF59E0B), // Moderate velocity amber
+              minHeight: 6,
+              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFFF59E0B),
               ),
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  '${summary.activeBidsCount} active ASBA bids currently frozen',
-                  style: TextStyle(fontSize: 11, color: subColor),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Target: 3.0x turnover',
-                style: TextStyle(fontSize: 11, color: subColor),
-              ),
-            ],
+          Text(
+            '${summary.activeBidsCount} active ASBA bids currently frozen · Target 3.0x turnover',
+            style: TextStyle(fontSize: 12, color: subColor),
           ),
         ],
       ),
@@ -153,10 +124,11 @@ class WorkingCapitalMatrixWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF161B22) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0);
+    final cardBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final subContainerBg = isDark ? const Color(0xFF090E17) : const Color(0xFFF8FAFC);
+    final borderColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
     final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subColor = isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B);
+    final subColor = isDark ? const Color(0xFF64748B) : const Color(0xFF64748B);
 
     return Container(
       decoration: BoxDecoration(
@@ -164,119 +136,135 @@ class WorkingCapitalMatrixWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
       ),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Text(
+                'ACTIVE WORKING POOL',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.1,
+                  color: subColor,
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: onAddCapital,
+                icon: const Icon(Icons.add, size: 14),
+                label: const Text('Capital', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF0F172A),
+                  side: BorderSide(color: borderColor),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            AppFormatters.formatCurrency(summary.activeWorkingPool),
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // 3-Way Pool State Breakdown - Vertical Stack in rounded container
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: subContainerBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: Column(
+              children: [
+                _buildMetricRow(
+                  dotColor: const Color(0xFF10B981),
+                  label: 'Available to bid',
+                  amount: summary.availableToBid,
+                  isDark: isDark,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(color: borderColor, height: 1),
+                ),
+                _buildMetricRow(
+                  dotColor: const Color(0xFFF59E0B),
+                  label: 'Frozen in ASBA',
+                  amount: summary.frozenInBids,
+                  isDark: isDark,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(color: borderColor, height: 1),
+                ),
+                _buildMetricRow(
+                  dotColor: const Color(0xFF3B82F6),
+                  label: 'Invested in stock',
+                  amount: summary.investedInAllotted,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Divider(color: borderColor, height: 1),
+          const SizedBox(height: 14),
+
+          // Working Capital Reconciliation 2x2 Grid
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'ACTIVE WORKING POOL',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.1,
-                        color: subColor,
-                      ),
+                    _ReconciliationItem(
+                      label: 'Injected',
+                      amount: summary.injectedCapital,
+                      isDark: isDark,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppFormatters.formatCurrency(summary.activeWorkingPool),
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                        color: textColor,
-                      ),
+                    const SizedBox(height: 12),
+                    _ReconciliationItem(
+                      label: 'Parent retentions',
+                      amount: summary.parentRetentions,
+                      isAlert: summary.parentRetentions > 0,
+                      isDark: isDark,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: onAddCapital,
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('CAPITAL'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
-                  side: BorderSide(color: borderColor),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // 3-Way Pool State Breakdown
-          Row(
-            children: [
               Expanded(
-                child: _MetricTile(
-                  title: 'Available to Bid',
-                  amount: summary.availableToBid,
-                  indicatorColor: const Color(0xFF10B981), // Emerald
-                  isDark: isDark,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _ReconciliationItem(
+                      label: 'Repatriated',
+                      amount: summary.repatriatedCapital,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _ReconciliationItem(
+                      label: 'Realized gains',
+                      amount: summary.realizedProfits,
+                      isPositiveProfit: true,
+                      isDark: isDark,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _MetricTile(
-                  title: 'Frozen in ASBA',
-                  amount: summary.frozenInBids,
-                  indicatorColor: const Color(0xFFF59E0B), // Amber
-                  isDark: isDark,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _MetricTile(
-                  title: 'Invested (Allotted)',
-                  amount: summary.investedInAllotted,
-                  indicatorColor: const Color(0xFF3B82F6), // Blue
-                  isDark: isDark,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-
-          // Working Capital Reconciliation Ledger
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _ReconciliationItem(
-                label: 'Injected',
-                amount: summary.injectedCapital,
-                isDark: isDark,
-              ),
-              _ReconciliationItem(
-                label: 'Repatriated',
-                amount: summary.repatriatedCapital,
-                isDark: isDark,
-              ),
-              _ReconciliationItem(
-                label: 'Parent Retentions',
-                amount: summary.parentRetentions,
-                isAlert: summary.parentRetentions > 0,
-                isDark: isDark,
-              ),
-              _ReconciliationItem(
-                label: 'Realized Gains',
-                amount: summary.realizedProfits,
-                isDark: isDark,
-                isPositiveProfit: true,
               ),
             ],
           ),
@@ -284,74 +272,46 @@ class WorkingCapitalMatrixWidget extends StatelessWidget {
       ),
     );
   }
-}
 
-class _MetricTile extends StatelessWidget {
-  final String title;
-  final double amount;
-  final Color indicatorColor;
-  final bool isDark;
-
-  const _MetricTile({
-    required this.title,
-    required this.amount,
-    required this.indicatorColor,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = isDark ? const Color(0xFF21262D) : const Color(0xFFF8FAFC);
-    final border = isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: indicatorColor,
-                  shape: BoxShape.circle,
-                ),
+  Widget _buildMetricRow({
+    required Color dotColor,
+    required String label,
+    required double amount,
+    required bool isDark,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            AppFormatters.formatCurrency(amount),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          AppFormatters.formatCurrency(amount),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -379,22 +339,22 @@ class _ReconciliationItem extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 11,
             color: isAlert
                 ? const Color(0xFFF59E0B)
-                : (isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B)),
-            fontWeight: isAlert ? FontWeight.w600 : FontWeight.w400,
+                : (isDark ? const Color(0xFF64748B) : const Color(0xFF64748B)),
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
           '${isPositiveProfit && amount > 0 ? '+' : ''}${AppFormatters.formatCurrency(amount)}',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
             color: isPositiveProfit && amount > 0
                 ? const Color(0xFF10B981)
-                : (isDark ? const Color(0xFFC9D1D9) : const Color(0xFF334155)),
+                : (isDark ? Colors.white : const Color(0xFF0F172A)),
           ),
         ),
       ],
@@ -424,10 +384,10 @@ class IpoBidCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF161B22) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0);
+    final cardBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
     final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subColor = isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B);
+    final subColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     final status = application.status;
 
@@ -436,7 +396,7 @@ class IpoBidCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -507,7 +467,7 @@ class IpoBidCard extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                       side: BorderSide(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1),
                       ),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -549,7 +509,7 @@ class IpoBidCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: const Color(0xFF1E3A8A), // Navy
+                    backgroundColor: const Color(0xFF2563EB), // Blue
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -563,7 +523,7 @@ class IpoBidCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF21262D) : const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF090E17) : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(

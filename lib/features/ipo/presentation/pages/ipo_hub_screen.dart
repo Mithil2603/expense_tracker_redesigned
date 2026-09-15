@@ -65,21 +65,24 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
         },
         builder: (context, state) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
-          final scaffoldBg = isDark ? const Color(0xFF0D1117) : const Color(0xFFF1F5F9);
+          final scaffoldBg = isDark ? const Color(0xFF090D16) : const Color(0xFFF1F5F9);
           final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
           return Scaffold(
             backgroundColor: scaffoldBg,
             appBar: AppBar(
-              backgroundColor: isDark ? const Color(0xFF161B22) : Colors.white,
+              backgroundColor: isDark ? const Color(0xFF090D16) : Colors.white,
               elevation: 0,
               centerTitle: false,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
               title: Text(
-                'IPO CAPITAL HUB',
+                'IPO capital hub',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                   color: textColor,
                 ),
               ),
@@ -89,21 +92,22 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                       ),
                     ),
                   ),
                   child: TabBar(
                     controller: _tabController,
-                    labelColor: isDark ? Colors.white : const Color(0xFF0F172A),
-                    unselectedLabelColor: isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B),
+                    labelColor: const Color(0xFF3B82F6),
+                    unselectedLabelColor: isDark ? const Color(0xFF64748B) : const Color(0xFF64748B),
                     indicatorColor: const Color(0xFF3B82F6),
-                    indicatorWeight: 2.5,
-                    labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    indicatorWeight: 2.0,
+                    labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                     tabs: const [
-                      Tab(text: 'POOL & BIDS'),
-                      Tab(text: 'ALLOCATIONS'),
-                      Tab(text: 'HISTORY'),
+                      Tab(text: 'Pool and bids'),
+                      Tab(text: 'Allocations'),
+                      Tab(text: 'History'),
                     ],
                   ),
                 ),
@@ -157,22 +161,15 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
   }
 
   Widget _buildProfileSwitcher(BuildContext context, IpoHubLoaded state, bool isDark) {
-    final bg = isDark ? const Color(0xFF161B22) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0);
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border(bottom: BorderSide(color: borderColor)),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
             _ProfileChip(
-              title: 'All Profiles',
+              title: 'All profiles',
               isSelected: state.selectedProfileId == null,
               onTap: () {
                 context.read<IpoHubBloc>().add(const SelectProfileEvent(null));
@@ -186,7 +183,6 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
                 padding: const EdgeInsets.only(right: 8),
                 child: _ProfileChip(
                   title: p.name,
-                  badge: p.type == ProfileType.self ? 'Self' : 'Proxy',
                   isSelected: isSelected,
                   onTap: () {
                     context.read<IpoHubBloc>().add(SelectProfileEvent(p.id));
@@ -222,7 +218,7 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
 
           // Recycling Velocity Meter
           RecyclingVelocityMeterWidget(summary: state.summary),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Action Buttons Bar
           Row(
@@ -230,30 +226,34 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _showCreateBidSheet(context, state),
-                  icon: const Icon(Icons.flash_on_rounded, size: 18),
-                  label: const Text('APPLY ASBA BID'),
+                  icon: const Icon(Icons.description_outlined, size: 18),
+                  label: const Text('Apply ASBA bid'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3A8A), // Navy
+                    backgroundColor: const Color(0xFF3B82F6),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
+                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _showAddCapitalSheet(context, state),
-                  icon: const Icon(Icons.account_balance_rounded, size: 18),
-                  label: const Text('INJECT / RETURN'),
+                  icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                  label: const Text('Inject / return'),
                   style: OutlinedButton.styleFrom(
+                    backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                     foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
                     side: BorderSide(
-                      color: isDark ? const Color(0xFF30363D) : const Color(0xFFCBD5E1),
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1),
+                      width: 1.2,
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -266,20 +266,20 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'ACTIVE BIDS & ALLOTMENTS',
+                'ACTIVE BIDS AND ALLOTMENTS',
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 1.1,
-                  color: isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF64748B),
                 ),
               ),
               Text(
-                '${activeBids.length} Active',
+                '${activeBids.length} active',
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B),
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -288,38 +288,39 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
 
           if (activeBids.isEmpty)
             Container(
-              padding: const EdgeInsets.all(28),
+              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF161B22) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0),
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                 ),
               ),
               child: Column(
                 children: [
                   Icon(
-                    Icons.layers_clear_outlined,
+                    Icons.inbox_outlined,
                     size: 36,
-                    color: isDark ? const Color(0xFF484F58) : const Color(0xFF94A3B8),
+                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
-                    'No Active ASBA Bids',
+                    'No active ASBA bids',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B),
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Tap "APPLY ASBA BID" to block funds and begin recycling.',
+                    'Tap "Apply ASBA bid" to block funds and begin recycling.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? const Color(0xFF6E7681) : const Color(0xFF94A3B8),
+                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -351,10 +352,10 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
 
   Widget _buildAllocationsTab(BuildContext context, IpoHubLoaded state, bool isDark) {
     final allocations = state.filteredAllocations;
-    final cardBg = isDark ? const Color(0xFF161B22) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0);
+    final cardBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
     final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subColor = isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B);
+    final subColor = isDark ? const Color(0xFF64748B) : const Color(0xFF64748B);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -385,7 +386,7 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: cardBg,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: borderColor),
             ),
             child: Text(
@@ -422,7 +423,7 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: borderColor),
               ),
               child: Row(
@@ -507,7 +508,7 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
 
   Widget _buildHistoryTab(BuildContext context, IpoHubLoaded state, bool isDark) {
     final applications = state.filteredApplications;
-    final subColor = isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B);
+    final subColor = isDark ? const Color(0xFF64748B) : const Color(0xFF64748B);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -625,13 +626,13 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
       context: context,
       builder: (dialogCtx) {
         return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF161B22) : Colors.white,
+          backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
           title: const Text('Unblock / Refund ASBA Hold?'),
           content: Text(
             'This releases ₹${app.bidAmount.toStringAsFixed(0)} back to the Available pool for recycling. Zero expense entries will touch your ledger.',
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             ),
           ),
           actions: [
@@ -643,7 +644,7 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
               style: ElevatedButton.styleFrom(
                 minimumSize: Size.zero,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                backgroundColor: const Color(0xFF1E293B),
+                backgroundColor: const Color(0xFF3B82F6),
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
@@ -716,14 +717,12 @@ class _IpoHubScreenState extends State<IpoHubScreen> with SingleTickerProviderSt
 
 class _ProfileChip extends StatelessWidget {
   final String title;
-  final String? badge;
   final bool isSelected;
   final VoidCallback onTap;
   final bool isDark;
 
   const _ProfileChip({
     required this.title,
-    this.badge,
     required this.isSelected,
     required this.onTap,
     required this.isDark,
@@ -731,59 +730,36 @@ class _ProfileChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bg = isSelected
+        ? (isDark ? const Color(0xFF0F1E36) : const Color(0xFFE0F2FE))
+        : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9));
+    final borderColor = isSelected
+        ? const Color(0xFF3B82F6)
+        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0));
+    final textColor = isSelected
+        ? (isDark ? Colors.white : const Color(0xFF0284C7))
+        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? const Color(0xFF38BDF8).withValues(alpha: 0.15) : const Color(0xFF0F172A))
-              : (isDark ? const Color(0xFF21262D) : const Color(0xFFF1F5F9)),
+          color: bg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected
-                ? (isDark ? const Color(0xFF38BDF8) : const Color(0xFF0F172A))
-                : (isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0)),
-            width: isSelected ? 1.2 : 0.8,
+            color: borderColor,
+            width: isSelected ? 1.2 : 1.0,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? (isDark ? const Color(0xFF38BDF8) : Colors.white)
-                    : (isDark ? const Color(0xFFC9D1D9) : const Color(0xFF334155)),
-              ),
-            ),
-            if (badge != null) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? (isDark ? const Color(0xFF38BDF8).withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.2))
-                      : (isDark ? const Color(0xFF30363D) : const Color(0xFFE2E8F0)),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  badge!,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected
-                        ? (isDark ? const Color(0xFF38BDF8) : Colors.white)
-                        : (isDark ? const Color(0xFF8B949E) : const Color(0xFF64748B)),
-                  ),
-                ),
-              ),
-            ],
-          ],
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: textColor,
+          ),
         ),
       ),
     );
